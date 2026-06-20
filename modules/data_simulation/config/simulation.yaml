@@ -1,0 +1,74 @@
+# Stage Zero simulation config. Every knob here is read by generator/build.py.
+# Changing `seed` (or anything else) changes the whole dataset deterministically.
+
+seed: 1337
+start_date: "2026-06-15T00:00:00Z"   # span start (UTC, inclusive)
+span_days: 5                          # events spread across this many days
+output_dir: data/raw                  # relative to the repo root
+
+# Per-source target record counts (the generator tops up `routine` to hit these).
+volumes:
+  cloudtrail: 4000
+  k8s_audit: 4000
+  idp_session: 1500
+
+# Anomaly mix as fractions of the TOTAL corpus (routine is the remainder/topup).
+# validate.py asserts the realized mix lands within `tolerance` of these.
+anomaly_mix:
+  crypto_burst: 0.065        # resource hijacking — true positive
+  public_exposure: 0.04      # exposed ephemeral compute — true positive
+  identity_anomaly: 0.065    # session/credential abuse — true positive
+  legit_autoscale: 0.28      # noise to suppress
+  legit_cicd: 0.17           # noise to suppress
+  routine: 0.38              # normal background
+tolerance: 0.035
+
+account_id: "123456789012"
+regions: ["us-east-1", "us-west-2", "eu-west-1"]
+
+# Behavioural cohorts. Baselines here separate look-alike bursts (the core challenge):
+# legit bursts have high tag_completeness + a real controller; malicious ones don't.
+cohorts:
+  ci_runner:
+    principal_type: AssumedRole
+    role_name: ci-runner-role
+    k8s_subject: "system:serviceaccount:ci:ci-runner-sa"
+    active_hours: [6, 22]          # UTC; CI weighted to working hours
+    burst: [5, 20]
+    tag_completeness: 0.95
+    namespaces: ["ci", "build"]
+    source_ip_cidr: "10.20.0.0/16"
+    expected_tags: ["owner", "environment", "cost-center", "managed-by", "pipeline"]
+  hpa_autoscaler:
+    principal_type: AWSService
+    role_name: cluster-autoscaler-role
+    k8s_subject: "system:serviceaccount:kube-system:cluster-autoscaler"
+    active_hours: [6, 23]
+    burst: [10, 40]
+    tag_completeness: 0.98
+    namespaces: ["prod", "web"]
+    source_ip_cidr: "10.30.0.0/16"
+    expected_tags: ["owner", "environment", "cost-center", "managed-by", "app"]
+  human_dev:
+    principal_type: IAMUser
+    role_name: developer
+    k8s_subject: "dev-user"
+    active_hours: [8, 19]
+    burst: [1, 3]
+    tag_completeness: 0.6
+    namespaces: ["dev", "staging"]
+    source_ip_cidr: "203.0.113.0/24"
+    expected_tags: ["owner", "environment"]
+  scheduled_lambda:
+    principal_type: AWSService
+    role_name: scheduled-lambda-role
+    k8s_subject: ""
+    active_hours: [0, 24]
+    burst: [1, 2]
+    tag_completeness: 0.9
+    namespaces: []
+    source_ip_cidr: "10.40.0.0/16"
+    expected_tags: ["owner", "environment", "cost-center", "managed-by"]
+
+# Force the four canonical demo incidents (INC-A..INC-D) into the dataset.
+canonical_incidents: true

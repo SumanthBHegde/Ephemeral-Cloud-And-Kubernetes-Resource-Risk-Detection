@@ -1,0 +1,136 @@
+"""Auto-generate out/data_dictionary.md describing the produced dataset.
+
+This is an explicit Stage Zero deliverable: a one-stop field/type/example/purpose
+reference plus the realized generation stats, so downstream consumers and judges can
+read the schema without reverse-engineering the JSONL.
+"""
+from __future__ import annotations
+
+import json
+from collections import Counter
+
+from modules.data_simulation.generator.model import ALL_SOURCES, Event
+
+_SOURCE_DOC = {
+    "cloudtrail": (
+        "AWS CloudTrail",
+        "Authentic CloudTrail records (eventVersion 1.09). Includes EC2 (RunInstances/"
+        "TerminateInstances), STS (AssumeRole/AssumeRoleWithWebIdentity/GetSessionToken/"
+        "GetCallerIdentity) and S3 (CreateBucket/PutBucketPolicy/GetObject) events. STS "
+        "events are the in-feed half of the identity story.",
+        [("eventID", "string", "Unique record id; join key to labels.jsonl"),
+         ("eventName", "string", "API action, e.g. RunInstances"),
+         ("eventTime", "ISO8601 Z", "Second-precision UTC time"),
+         ("userIdentity", "object", "Caller; AssumedRole carries sessionContext"),
+         ("requestParameters", "object", "API inputs; tags via tagSpecificationSet, spot via instanceMarketOptions"),
+         ("responseElements", "object", "API outputs; public IP under instancesSet.networkInterfaceSet; AssumeRole credentials/assumedRoleUser"),
+         ("sharedEventID", "string?", "Present on linked events of one campaign chain")],
+    ),
+    "k8s_audit": (
+        "Kubernetes audit.k8s.io/v1",
+        "Authentic audit Events for pod create/delete, service exposure and RBAC changes. "
+        "Detection signals live where they really do: missing metadata.ownerReferences = bare "
+        "pod; securityContext.privileged; Service type NodePort/LoadBalancer.",
+        [("auditID", "string", "Unique record id; join key to labels.jsonl"),
+         ("verb", "string", "create/delete/patch"),
+         ("user.username", "string", "Authenticated subject (service account or user)"),
+         ("objectRef", "object", "Targeted resource/namespace/name"),
+         ("requestObject", "object", "Submitted spec: labels, ownerReferences, securityContext, ports"),
+         ("requestReceivedTimestamp", "ISO8601 ms", "Millisecond-precision UTC time")],
+    ),
+    "idp_session": (
+        "Okta-style IdP System Log",
+        "Federated identity / session feed (distinct from STS). Covers human logins, SSO, "
+        "federated inbound auth, and OAuth token grants. authenticationContext.externalSessionId "
+        "threads a federated login to the STS web-identity session it issued.",
+        [("uuid", "string", "Unique record id; join key to labels.jsonl"),
+         ("eventType", "string", "e.g. user.authentication.auth_via_IDP"),
+         ("published", "ISO8601 ms", "Millisecond-precision UTC time"),
+         ("actor.alternateId", "string", "Actor email; joins to STS roleSessionName"),
+         ("authenticationContext.externalSessionId", "string", "Session id linking IdP -> STS"),
+         ("securityContext.isProxy", "bool", "Proxy/anonymizer indicator"),
+         ("outcome.result", "string", "SUCCESS / FAILURE")],
+    ),
+}
+
+_LABEL_FIELDS = [
+    ("record_id", "string", "Authentic id of the labelled record"),
+    ("id_field", "string", "Which raw field record_id matches (eventID/auditID/uuid)"),
+    ("source", "string", "cloudtrail | k8s_audit | idp_session"),
+    ("action", "string", "Semantic action label"),
+    ("timestamp", "ISO8601 ms", "Event time (UTC)"),
+    ("is_risky", "0/1", "Ground-truth: part of a malicious campaign"),
+    ("scenario_type", "string", "crypto_burst | public_exposure | identity_anomaly | legit_autoscale | legit_cicd | routine"),
+    ("cohort", "string", "Behavioural cohort"),
+    ("campaign_id", "string", "Groups events of one campaign (attack or benign burst)"),
+    ("true_incident_id", "string?", "Canonical incident id (INC-A..D) when applicable"),
+    ("severity", "string", "none | low | medium | high | critical"),
+    ("anomaly_type", "string?", "resource_hijacking | public_exposure | identity_session_abuse | credential_abuse"),
+    ("pair_id", "string?", "Links a malicious campaign to its benign look-alike (confusability)"),
+]
+
+
+def _table(rows, headers=("Field", "Type", "Purpose")) -> str:
+    out = ["| " + " | ".join(headers) + " |", "|" + "---|" * len(headers)]
+    out += ["| " + " | ".join(r) + " |" for r in rows]
+    return "\n".join(out)
+
+
+def write_data_dictionary(path, cfg: dict, events: list[Event], records: dict) -> None:
+    scn = Counter(e.scenario_type for e in events)
+    by_src = Counter(e.source for e in events)
+    risky = sum(1 for e in events if e.is_risky)
+    total = len(events)
+    incidents = Counter(e.true_incident_id for e in events if e.true_incident_id)
+
+    lines = [
+        "# Stage Zero — Data Dictionary",
+        "",
+        "Auto-generated by `generator/build.py`. Three authentic-nested JSONL log streams "
+        "plus a ground-truth label sidecar.",
+        "",
+        "## Generation parameters",
+        "",
+        _table([
+            ("seed", str(cfg["seed"]), "Reproducibility seed"),
+            ("start_date", cfg["start_date"], "Span start (UTC)"),
+            ("span_days", str(cfg["span_days"]), "Days covered"),
+            ("account_id", str(cfg["account_id"]), "Simulated AWS account"),
+        ], headers=("Param", "Value", "Meaning")),
+        "",
+        "## Realized volumes",
+        "",
+        _table([(s, str(by_src.get(s, 0))) for s in ALL_SOURCES] + [("total", str(total))],
+               headers=("Source", "Records")),
+        "",
+        f"Risky events: **{risky}** / {total} ({risky / total:.1%}).",
+        "",
+        "## Realized anomaly mix",
+        "",
+        _table([(k, str(scn.get(k, 0)), f"{scn.get(k, 0) / total:.1%}",
+                 f"{cfg['anomaly_mix'].get(k, 0):.1%}")
+                for k in cfg["anomaly_mix"]],
+               headers=("scenario_type", "count", "realized", "target")),
+        "",
+        "## Canonical incidents present",
+        "",
+        _table([(i, str(incidents[i])) for i in ("INC-A", "INC-B", "INC-C", "INC-D")],
+               headers=("Incident", "Event count")),
+        "",
+    ]
+
+    for src in ALL_SOURCES:
+        title, desc, fields = _SOURCE_DOC[src]
+        lines += [f"## Source: `{src}.jsonl` — {title}", "", desc, "",
+                  _table([(f, t, p) for f, t, p in fields]), "",
+                  "Example record:", "", "```json",
+                  json.dumps(records[src][0], indent=2, ensure_ascii=False)
+                  if records[src] else "{}",
+                  "```", ""]
+
+    lines += ["## Label sidecar: `labels.jsonl`", "",
+              "One row per event, joined to raw records by `record_id`.", "",
+              _table([(f, t, p) for f, t, p in _LABEL_FIELDS]), ""]
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
