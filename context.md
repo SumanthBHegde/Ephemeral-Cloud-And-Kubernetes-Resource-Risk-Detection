@@ -25,17 +25,18 @@ Full design rationale lives in [docs/ephemeral_risk_detection_analysis.md](docs/
 | Module | Status |
 |---|---|
 | `modules/data_simulation/` | **DONE, verified** — generator + replay streamer + validator, all checks green |
-| `modules/ingest_enrich/` | not started — empty scaffold |
+| `modules/ingest_enrich/` | **DONE, verified** — normalize + clean + cohorts + §5 features, 9/9 tests green |
 | `modules/detection/` | not started — empty scaffold |
 | `modules/correlation/` | not started — empty scaffold |
 | `modules/risk_fusion/` | not started — empty scaffold |
 | `modules/llm_triage/` | not started — empty scaffold |
 | `modules/dashboard/` | not started — empty scaffold |
 
-**Next concrete step:** build `modules/ingest_enrich/` — normalize the three raw JSONL sources in
-`data/raw/` into one unified event schema and compute the per-event features listed in the design doc
-§5 (burst rate, principal novelty, tag completeness, privilege level, exposure flag, off-hours flag),
-plus behavioral-cohort assignment (§6). This unblocks the two-stage detector.
+**Next concrete step:** build `modules/detection/` — the two-stage detector (recall-first anomaly
+model + cohort-aware suppression) over the enriched feature table at
+`data/processed/events_enriched.parquet`. **Before writing any ML code, resolve the open
+Isolation-Forest-vs-TabPFN decision** (§5 below / design doc §16) — it gates this module. Stage 1
+(ingest_enrich) is done and provides every §5 feature the detector needs.
 
 ## 3. Chronological history
 
@@ -155,6 +156,47 @@ Created this `context.md`. While grounding it against `git log`, discovered CLAU
 the two pre-merge doc filenames and old section numbers from the `e7435ab` refactor — corrected as part
 of this same pass (see CLAUDE.md's current "planning documents" list and section citations).
 
+### 2026-06-20 — Stage 1 (`modules/ingest_enrich/`) built and verified
+Built the full ingest+enrich stage: read the three authentic Stage-Zero sources, normalize to one
+unified event schema, clean, assign behavioral cohorts (§6), and compute the §5 context features that
+unblock the detector. **9/9 new tests green; full suite 15/15 (6 Stage 0 + 9 Stage 1).**
+
+Decisions locked via Q&A this session (some correct the user's initial framing):
+
+| Question | Answer |
+|---|---|
+| Output format | **Parquet only** (`data/processed/events_enriched.parquet`) — design doc §16. User's initial "JSONL→CSV" instinct **rejected**: CSV is lossy on the nested/list columns this stage emits (`tags`, `labels`, `raw`). |
+| Consumption mode | **Both** — `build_enriched()` reads the 3 JSONL files directly (deterministic batch path detection reads); `enrich_stream()` wraps the existing `replay_events()` for the dashboard's live tile (per-event normalize+cohort only; windowed features stay batch). |
+| Scope | **Full Stage 1** — normalize + clean + all §5 features + §6 cohorts (not just cleaning). |
+| Cohort method | **Rule-assisted, deterministic** (no ML, no sklearn yet) — K8s SA subject → CloudTrail role/`invokedBy` → IdP email prefix → source-IP CIDR. §6 explicitly allows this. |
+| Cohort baseline | **Computed empirically from the data** (per-cohort z-centroid), NOT from `simulation.yaml` — avoids the circularity of "detecting what was injected". |
+
+Files added under `modules/ingest_enrich/`: `normalize/{cloudtrail,k8s_audit,idp_session,dispatch}.py`
+(+ `__init__.py` defining `UNIFIED_FIELDS`), `enrich/{cohorts,features}.py`, `pipeline.py`, `build.py`,
+real `README.md`; plus `tests/test_stage1.py`. `requirements.txt` gained `pandas>=2.0`, `pyarrow>=14`
+(no scikit-learn — deferred to detection). Reused `replay_events()`, `load_config()`/`load_cohorts()`,
+and the `SRC_*`/`ID_FIELD` constants from Stage Zero rather than re-hardcoding.
+
+**Implementation findings worth keeping:**
+- The cross-source thread for INC-C is `roleSessionName` ↔ IdP `actor.displayName` + a shared
+  `sharedEventID`, and STS→S3 via `assumedRoleId == S3 caller principalId`. The IdP
+  `externalSessionId` does **not** appear verbatim in CloudTrail — all linkage keys are surfaced as
+  columns; the *joining* is the graph stage's job, not Stage 1's.
+- The config's nominal hpa `k8s_subject` (`cluster-autoscaler`) does **not** match the rendered data
+  (the autoscale path surfaces as `replicaset-controller` + `autoscaling.amazonaws.com`). Cohort rules
+  are therefore grounded in the fields that actually appear, not blind config trust.
+- **629 rows assigned `unknown` cohort — this is correct, not a bug.** Every one is the
+  `identity_anomaly` attack (`contractor-*` federated users, public IPs, `is_risky=1`). Ground truth
+  labels them `human_dev` (nearest benign), but the whole point is they fit no known cohort baseline —
+  that *is* the signal. Forcing them into a cohort would mask the attack. Cohort accuracy on the 9,228
+  recognizable principals is **100%**.
+
+**Verified this session:** build → 9,857 enriched rows (4,000 CT / 4,357 K8s / 1,500 IdP), label join
+1:1, cohort accuracy 100% (non-unknown), all four canonical incidents' signals captured in features
+(INC-A off-hours+untagged+spot+public, INC-B privileged+exposed+bare, INC-C STS/IdP linkage keys,
+INC-D broad_rbac), and **confusability preserved** — crypto vs legit `burst_rate` overlap (mean 10.82
+vs 10.57) while tag_completeness (0.00 vs 0.41) and off_hours (0.83 vs 0.07) carry the separation.
+
 ## 4. Naming history (so nobody resurrects an old path)
 
 ```
@@ -189,18 +231,22 @@ Same evolution applies to the empty future-stage folders:
 pip install -r requirements.txt
 python -m modules.data_simulation.generator.build      # regenerate data/raw/ (seed 1337, deterministic)
 python modules/data_simulation/validate.py              # expect: 16/16 PASS
-python -m pytest tests/test_stage0.py -q                # expect: 6 passed
+python -m modules.ingest_enrich.build                   # -> data/processed/events_enriched.parquet
+python -m pytest tests/ -q                              # expect: 15 passed (6 stage0 + 9 stage1)
 python modules/data_simulation/replay/stream.py --instant --limit 5   # sanity-check live replay
 ```
-Last confirmed: 9,857 events (4,000/4,357/1,500 per source), 1,710 risky (17.3%), all four canonical
-incidents present (`INC-A=40, INC-B=3, INC-C=7, INC-D=2` rendered records), 16/16 validator checks
-green, 6/6 pytest green.
+Last confirmed: Stage 0 → 9,857 events (4,000/4,357/1,500 per source), 1,710 risky (17.3%), all four
+canonical incidents present (`INC-A=40, INC-B=3, INC-C=7, INC-D=2`), 16/16 validator green. Stage 1 →
+9,857 enriched rows, label join 1:1, cohort accuracy 100% (non-unknown), confusability preserved.
+Full suite 15/15 green.
 
 ## 7. What a new session should do next
 
 1. Read this file, then `docs/ephemeral_risk_detection_analysis.md` for the design rationale behind
    whatever you're about to touch.
-2. If picking up `modules/ingest_enrich/`: read `data/raw/data_dictionary.md` (auto-generated, always
-   current after a build) for the exact field names per source before writing the normalizer.
+2. If picking up `modules/detection/`: **first resolve the Isolation-Forest-vs-TabPFN decision** (§5),
+   then read the enriched feature columns from `modules/ingest_enrich/README.md` and load
+   `data/processed/events_enriched.parquet` — that table (cohorts + §5 features) is the detector's
+   input. Labels for eval are in `data/raw/labels.jsonl`, joined on `record_id` (never read at runtime).
 3. After any meaningful change, append a new dated entry to §3 of this file — don't rewrite history,
    add to it.
