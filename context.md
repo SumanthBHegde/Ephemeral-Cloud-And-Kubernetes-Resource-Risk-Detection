@@ -197,6 +197,14 @@ and the `SRC_*`/`ID_FIELD` constants from Stage Zero rather than re-hardcoding.
 INC-D broad_rbac), and **confusability preserved** — crypto vs legit `burst_rate` overlap (mean 10.82
 vs 10.57) while tag_completeness (0.00 vs 0.41) and off_hours (0.83 vs 0.07) carry the separation.
 
+### 2026-06-20 — Prompt history converted to docs/prompt_documentation.md
+Converted `docs/Prompt Documentation.pdf` (the team's own log of the 26 prompts used during Phase 1 —
+problem-statement exploration/selection across the four Société Générale hackathon options, ending in
+the choice of Problem Statement 3 / Ephemeral Cloud) into
+[docs/prompt_documentation.md](docs/prompt_documentation.md). Faithful 1:1 conversion (each prompt's
+text + stated purpose, plus the phase's closing results list); no content added or reinterpreted. The
+source PDF is left in place in `docs/` alongside the new `.md`.
+
 ## 4. Naming history (so nobody resurrects an old path)
 
 ```
