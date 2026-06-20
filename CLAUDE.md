@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Read [context.md](context.md) first.** It is the single source of truth for project *progress* —
+what has been built, decided, and verified, in chronological order, and what to do next. This file
+covers architecture/conventions; context.md covers history and current state.
+
+**Update context.md at the end of every conversation/session that changes the project** — append a
+new dated entry to its "Chronological history" section (don't rewrite history, add to it), and refresh
+its "Current status" table if a module's status changed. Do this even for small changes; an out-of-date
+context.md is worse than no context.md because the next session will trust it.
+
 ## Repository status
 
 This repo is building a near-real-time detection pipeline for ephemeral cloud/Kubernetes risk, as a
@@ -41,14 +50,13 @@ python modules/data_simulation/replay/stream.py --instant | head   # live-replay
 
 The planning documents, in order of authority:
 
-1. [docs/ephemeral_risk_detection_option_a_design.md](docs/ephemeral_risk_detection_option_a_design.md) —
-   the **single source of truth** for architecture, data flow, build plan, and evaluation. When this
-   doc and the others disagree, this one wins.
-2. [docs/ephemeral_cloud_analysis.md](docs/ephemeral_cloud_analysis.md) — compiled analysis: difficulty/impact
-   assessment, build strategy, schema design, and an important pipeline-ordering catch (see below).
-3. [docs/problem_statement.md](docs/problem_statement.md) — the original challenge brief (the three Option
+1. [docs/ephemeral_risk_detection_analysis.md](docs/ephemeral_risk_detection_analysis.md) — the
+   **single source of truth** for problem analysis, architecture, data flow, build plan, and
+   evaluation (its own header states this authority explicitly: doc > CLAUDE.md > module READMEs).
+   Section numbers cited below (§N) refer to this document.
+2. [docs/problem_statement.md](docs/problem_statement.md) — the original challenge brief (the three Option
    A/B/C tiers, success criteria, framework alignment). Read as background, not as the plan.
-4. [docs/data_resource_research.md](docs/data_resource_research.md) — survey of real-world public datasets for
+3. [docs/data_resource_research.md](docs/data_resource_research.md) — survey of real-world public datasets for
    grounding the simulator (see "Grounding the simulator in real data" below).
 
 ## What is being built
@@ -96,7 +104,7 @@ Read the pipeline order literally: lightweight rule/statistical detection flags 
 clustering groups them *second*, and **risk scoring happens at the incident level, after clustering**.
 Three individually low-scoring events from the same principal in the same 5-minute window can be one
 high-severity incident together. Per-event scoring before clustering misses that; do not reorder these
-stages. (Source: analysis doc §4.)
+stages. (Source: analysis doc §3, "Critical ordering catch.")
 
 ## Data simulation is the foundation — get it right first
 
@@ -149,7 +157,7 @@ sourcing a build dependency. Concretely:
   dataset exists. Mimic session behavior (TTL patterns, off-hours, scope mismatch) from the
   `AssumeRole` records implicit in the cloud-audit sources above.
 
-## Source event schemas (see analysis doc §8 and design doc §5)
+## Source event schemas (see analysis doc §4 "Data Simulation Design" and §5 "Feature Engineering")
 
 - **Cloud audit logs:** `event_id`, `timestamp`, `event_type` (RunInstances/AssumeRole/CreateBucket/
   TerminateInstances/PutBucketPolicy), `principal_id`, `principal_type`, `source_ip`, `region`,
@@ -162,18 +170,19 @@ sourcing a build dependency. Concretely:
   federated), `principal_id`, `source_idp`, `ttl_seconds`, `source_ip`, `actions_performed`,
   `resource_accessed`.
 
-## Tech stack (design doc §17)
+## Tech stack (design doc §16)
 
 Python, Pandas, NumPy/SciPy; scikit-learn (Isolation Forest + isotonic/Platt calibration), optional
 autoencoder (PyTorch/Keras) as a secondary signal; NetworkX for the graph; any chat-completions LLM API
 with JSON-schema-validated output; Streamlit or Plotly Dash for the dashboard; Parquet/SQLite for
 event and incident storage.
 
-**ML-model tension to resolve before building the ML lane:** the Option A design (source of truth)
-specifies Isolation Forest as primary. The analysis doc instead recommends **TabPFN / TabPFN-2.5**
-(a pretrained tabular foundation model — no training loop, scores in seconds) specifically to avoid
-burning the Claude Code Pro usage window on training/tuning cycles. Both are documented; confirm the
-choice (and TabPFN's feature-table integration path) before committing build time.
+**ML-model tension to resolve before building the ML lane:** the design doc specifies Isolation Forest
+as primary but flags **TabPFN / TabPFN-2.5** (a pretrained tabular foundation model — no training loop,
+scores in seconds) as worth considering instead, specifically to avoid burning the Claude Code Pro
+usage window on training/tuning cycles, with using Claude itself as a few-shot scorer as a
+fallback-of-last-resort. Not yet decided — confirm the choice (and TabPFN's feature-table integration
+path) before committing build time on `modules/detection/`.
 
 ## Build order — backend lane first, then ML (strict dependency chain)
 
