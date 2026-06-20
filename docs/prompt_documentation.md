@@ -515,6 +515,106 @@ incidents from being dismissed).
 
 ---
 
+## Phase 6 - Stage Five Build (LLM Triage Agent)
+
+### Goal
+
+Build Stage 5: the LLM triage agent that consumes the ranked CRITICAL/HIGH incidents from Stage 4
+and produces **validated structured JSON** (intent, confidence, MITRE techniques, evidence, 
+disambiguation, guardrails per design doc §10) — cached for the live demo and with a deterministic
+fallback so the pipeline never crashes.
+
+---
+
+### Prompt 35 (Planning Q&A)
+
+```
+Now we have Stage 4 complete with scored incidents. Let's plan Stage 5 — the LLM triage agent.
+Which LLM provider (OpenAI vs HuggingFace)? Which model? How do we handle caching and offline fallback?
+Ask me questions to lock the decisions before building.
+```
+
+**Purpose:** Plan Stage 5 with critical decisions locked via user Q&A.
+
+**Key decisions locked:**
+- **Provider/model:** **OpenAI `gpt-4o-mini`** with **strict `json_schema` structured outputs** (response_format, strict:true). HuggingFace rejected (weaker JSON adherence; local=GPU/download risk).
+- **API key:** **gitignored `.env` + `python-dotenv`** (`OPENAI_API_KEY`); `.env.example` committed.
+- **Triage scope:** **`risk_band ∈ {CRITICAL, HIGH}`** — 263 incidents (44 CRITICAL + 219 HIGH).
+- **Caching:** **pre-generate + cache** — per-incident JSON at `data/processed/triage_cache/INC-XXXX.json`, keyed by `incident_id` + `sort_keys` MD5 hash of evidence bundle. Rerun on unchanged data = pure cache hit (offline, deterministic demo).
+- **Resilience:** **Validate + retry on error**, with **templated fallback** when API unavailable/invalid → pipeline never crashes.
+
+---
+
+### Prompt 36 (Implementation)
+
+```
+Implement Stage 5 — the full LLM triage module: triage/schema.py (strict json_schema + validator),
+evidence.py (per-incident bundle), prompt.py, client.py (openai + retry), cache.py, fallback.py
+(label-free template), pipeline.py, build.py, evaluate.py, tests/test_stage5.py.
+Verify: 9/9 tests green, 263 incidents triaged, schema valid, cache hits deterministic, fallback label-free.
+```
+
+**Purpose:** Build the complete triage module mirroring Stages 1–4 structure.
+
+**Implemented:**
+- `triage/schema.py` — strict json_schema (7 fields: intent, confidence, mitre, key_evidence, 
+  disambiguation, recommended_guardrails) + stdlib validator (MITRE regex `T\d{4}(\.\d{3})?`, 
+  confidence∈[0,1], non-empty lists)
+- `triage/evidence.py` — `build_evidence_bundle`: incident aggregates + top-`MAX_MEMBER_EVENTS=5` 
+  members ranked by `p_event`, carrying confusability fields (cohort, tag_completeness, 
+  controller_owner, exposure, off-hours)
+- `triage/prompt.py` — SOC-triage system prompt encoding the central thesis (detect on context, 
+  not events) + `render_user_prompt(evidence)`
+- `triage/client.py` — lazy-imported OpenAI client, `timeout=30`, `MAX_RETRIES=3`, validate-then-retry
+- `triage/cache.py` — per-incident JSON, keyed by `incident_id` + `sort_keys` MD5 hash
+- `triage/fallback.py` — **LABEL-FREE** deterministic template (intent from `edge_types` / 
+  `risk_band` / `severity_floor` / `any_privileged` / source mix / `max_privilege_level` only)
+- `pipeline.py` (`run_triage`: cache → LLM → fallback per incident; `use_llm=False` forces fallback 
+  for tests/offline)
+- `build.py` — argparse CLI with `--no-llm` flag; prints provenance breakdown (llm/cache/template counts)
+- `evaluate.py` — coverage, source-mix metrics, canonical spot-check, extended ablation row
+- `test_stage5.py` — 9 tests: schema, bands-only scope, determinism, validation, cache round-trip, 
+  cache-hit rerun, canonical incidents, fallback label-free, evaluate coverage
+
+**Plan-review fixes (all caught before/at build):**
+- Fallback **strictly label-free** — `scenario_type` is a `labels.jsonl` sidecar absent at runtime
+- Member ranking uses `p_event` (from `events_scored`, "for dashboard + LLM"), not `ensemble_score`
+- `openai>=1.40` pinned — `strict:true` silently ignored below 1.40
+- Evidence hash uses `sort_keys=True` — canonicalizes dict key order so identical data hashes identically
+
+---
+
+## Result of Phase 6
+
+- **Stage 5 built and verified:** LLM triage agent (OpenAI structured-output) + offline cache + 
+  label-free fallback, full structure mirroring Stages 1–4.
+- **Offline verification (sandbox):** 263 CRITICAL+HIGH incidents triaged (coverage 100%), rerun = 
+  pure cache hit, all four canonical (INC-A/B/C/D) triaged with non-empty intent + disambiguation, 
+  MITRE coverage 100%, 9/9 tests green, full suite 49/49 passed.
+- **Live OpenAI verification:** Ran `python -m modules.llm_triage.build` after adding API key. 
+  **All 263/263 incidents successfully triaged via gpt-4o-mini** (`provenance: llm=263`, zero 
+  fallbacks), mean confidence 0.852 (range 0.80–0.90). Every cache file is tagged 
+  `triage_source="llm"`, each with a high-confidence context-driven narrative (e.g. INC-0515: 
+  "Malicious exposure of services…", mitre=['T1496','T1610','T1078'], evidence + guardrails from 
+  incident bundle).
+- **Output:** `data/processed/incidents_triaged.parquet` (263 rows, all llm) + 
+  `data/processed/triage_cache/INC-XXXX.json` (263 LLM-generated).
+- **Ablation table (extended):**
+  | Configuration | Precision | Recall | Alert reduction |
+  |---|---|---|---|
+  | + risk fusion (incident, band≥HIGH) | 68.4% | 99.5% | 89% |
+  | **+ LLM triage (CRITICAL+HIGH narratives)** | **68.4%** | **99.5%** | **89%** |
+- **Key learnings:**
+  - Strict json_schema (OpenAI `response_format`) enforces output shape — no need for LLM to learn format
+  - Cache with deterministic evidence hash enables offline demo (no live API dependency)
+  - Label-free template survives when API is unavailable, preventing pipeline crashes (verified by
+    the offline `--no-llm` path; the live run itself needed no fallbacks — all 263 succeeded)
+- **Updated:** context.md (§2 status, §3 chronology, §6 verify, §7 next), CLAUDE.md, 
+  requirements.txt (+openai>=1.40, +python-dotenv), .gitignore (.env), .env.example (template with 
+  OPENAI_API_KEY=), modules/llm_triage/README.md
+
+---
+
 ## Phase 3 - Stage Two Build (Two-Stage Detection) + Model Decision
 
 ### Goal

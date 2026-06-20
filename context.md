@@ -29,15 +29,14 @@ Full design rationale lives in [docs/ephemeral_risk_detection_analysis.md](docs/
 | `modules/detection/` | **DONE, verified** — tripwires + IF/ECOD ensemble + cohort suppression, 8/8 tests green |
 | `modules/correlation/` | **DONE, verified** — entity graph + connected-component incidents, alert reduction 89%, 8/8 tests green |
 | `modules/risk_fusion/` | **DONE, verified** — fused raw score + OOF isotonic calibration + incident aggregation, precision@50 96%, 9/9 tests green |
-| `modules/llm_triage/` | not started — empty scaffold |
+| `modules/llm_triage/` | **DONE, verified** — OpenAI gpt-4o-mini structured-output triage + existence-based cache (cost guard) + label-free templated fallback, 263 CRITICAL+HIGH incidents triaged live (100%), 10/10 tests green |
 | `modules/dashboard/` | not started — empty scaffold |
 
-**Next concrete step:** build `modules/llm_triage/` — a triage *agent* (not a prose generator) that
-consumes `data/processed/incidents_scored.parquet` (Stage 4's output, ranked by `risk_score`) +
-`events_scored.parquet` + the per-incident evidence (members, graph subgraph, cohort context) and
-returns **validated structured JSON** (intent, confidence, MITRE techniques, guardrails) per incident.
-Design doc §10: strict schema + validation + retry, cache responses so the live demo never needs a
-network call, templated fallback. Start from the top-ranked incidents (the CRITICAL band, 44 of them).
+**Next concrete step:** build `modules/dashboard/` (Stage 6) — the forensic/alert UI (Streamlit or
+Plotly Dash, design doc §11). Consume `data/processed/incidents_triaged.parquet` (Stage 5 triage
+JSON) + `incidents_scored.parquet` (ranked queue) + `events_scored.parquet`, and render the
+analyst-facing alert-fatigue curve (raw → suppressed → correlated → triaged), the ranked incident
+queue, and per-incident triage cards (intent, MITRE, evidence, disambiguation, guardrails).
 
 ## 3. Chronological history
 
@@ -370,6 +369,76 @@ MEDIUM), `risk_score` ∈ [0.056, 0.885]. Extended ablation table:
 
 (precision@K is the headline recovery: 96% @50. The band≥HIGH row above is the high-recall cut.)
 
+### 2026-06-20 — Stage 5 (`modules/llm_triage/`) built and verified
+Built the LLM triage agent that turns the ranked CRITICAL/HIGH incidents into validated structured
+triage JSON (design doc §10). **10/10 new tests green; full suite 50/50 (6 stage0 + 9 stage1 + 8 stage2
++ 8 stage3 + 9 stage4 + 10 stage5).** `requirements.txt` gained `openai>=1.40` + `python-dotenv>=1.0`;
+`.env` added to `.gitignore` with a committed `.env.example`.
+
+Decisions locked with the user this session (two Q&A rounds), then hardened over three plan-review
+passes:
+| Question | Answer |
+|---|---|
+| Provider/model | **OpenAI `gpt-4o-mini`** with **strict `json_schema` structured outputs** (`response_format`, `strict:true`). HuggingFace rejected (weaker JSON adherence; local path = GPU/download risk). `openai>=1.40` pinned — `strict:true` is silently ignored below 1.40. |
+| API key | **gitignored `.env` + `python-dotenv`** (`OPENAI_API_KEY`); `.env.example` committed. |
+| Triage scope | **`risk_band ∈ {CRITICAL, HIGH}`** — 263 incidents (44 + 219). |
+| Caching | **pre-generate + cache** — per-incident `data/processed/triage_cache/INC-XXXX.json` keyed by `incident_id` + `sort_keys` MD5 of the evidence bundle, so a rerun on unchanged data is a pure cache hit (offline, deterministic demo). |
+
+Module `modules/llm_triage/` (mirrors risk_fusion's structure): `triage/` package —
+`schema.py` (the 7-field strict json_schema + a stdlib validator: MITRE regex `T\d{4}(\.\d{3})?`,
+non-empty lists, confidence∈[0,1]), `evidence.py` (`build_evidence_bundle` — incident aggregates +
+top-`MAX_MEMBER_EVENTS=5` member events ranked by `p_event`, carrying confusability fields cohort /
+tag_completeness / controller_owner / exposure / off-hours), `prompt.py` (SOC-triage system prompt
+encoding the central thesis), `client.py` (lazy-imported OpenAI, `timeout=30`, `MAX_RETRIES=3`,
+validate-then-retry), `cache.py`, `fallback.py` (deterministic **LABEL-FREE** template). Plus
+`pipeline.py` (`run_triage`: cache → LLM → templated fallback per incident; `use_llm=False` forces
+fallback-only for tests/offline), `build.py` (`--no-llm` flag), `evaluate.py`, real `README.md`;
+`tests/test_stage5.py`.
+
+Plan-review fixes worth keeping (all caught before/at build):
+- **Fallback is strictly label-free** — `scenario_type` is a `labels.jsonl` sidecar field absent from
+  `incidents_scored` at runtime; the template derives intent from `edge_types` / `risk_band` /
+  `severity_floor` / `any_privileged` / source mix / `max_privilege_level` only. A test asserts
+  `scenario_type`/`is_risky` are not in the incident frame and the fallback still validates.
+- **Member ranking uses `p_event`** (from `events_scored`, written "for dashboard + LLM"), not
+  `ensemble_score` (which lives in `detections.parquet`, not the enriched table). `run_triage` takes
+  `events_scored` as a parameter so evidence.py never reads disk → in-memory test path intact.
+- **Stage never crashes** — a failed/invalid LLM call degrades to the template; every record carries
+  a `triage_source` provenance tag (`llm`/`cache`/`template`).
+- One build bug fixed: the bundle's `_py` coercion iterated numpy *scalars* (which have `.tolist()`);
+  switched to explicit `np.ndarray` / `np.generic` checks.
+
+**Verified this session (`--no-llm` + `evaluate.py`):** 263/263 CRITICAL+HIGH incidents triaged
+(coverage 100%), second run = pure cache hit (provenance `cache=263`), all four canonical incidents
+(INC-A/B/C/D) triaged with non-empty intent + disambiguation, MITRE coverage 100%. Ablation extended:
+| Configuration | Precision | Recall | Alert reduction |
+|---|---|---|---|
+| + risk fusion (incident, band≥HIGH) | 68.4% | 99.5% | 89% |
+| **+ LLM triage (CRITICAL+HIGH narratives)** | **68.4%** | **99.5%** | **89%** |
+
+(Triage annotates the band≥HIGH queue; it doesn't change the flagged set, so P/R carry forward. Its
+contribution is analyst-ready narratives, not a precision/recall move.)
+
+**Live OpenAI verification (same session):** After adding the API key and clearing the cache,
+ran `python -m modules.llm_triage.build` to generate real gpt-4o-mini triages. **All 263/263
+incidents successfully triaged via LLM** (`provenance: llm=263`, zero fallbacks), mean confidence
+0.852 (range 0.80–0.90). All 263 cache files are tagged `triage_source="llm"`, each with a
+high-confidence context-driven narrative (e.g. INC-0515: confidence 0.9, "Malicious exposure of
+services…", mitre=['T1496','T1610','T1078'], evidence and guardrails drawn from the incident bundle).
+Final parquet `incidents_triaged.parquet` is 263 rows, all `llm` provenance. Both live and offline
+paths verified green. (Note: an intermediate inspection mid-run saw only 219 files because the
+sequential run was still in flight; the completed run is 263/263.)
+
+**Post-build: cache reuse made existence-based (cost guard, user-requested).** Originally the cache
+reused an entry only when the evidence hash matched, so any bundle change (even trivial) re-spent the
+paid API on every incident. Changed to **existence-based reuse**: if `INC-XXXX.json` already exists it
+is reused and the LLM is never re-called — a rerun never re-spends the API. Added `force_refresh`
+(`run_triage(..., force_refresh=True)` / `build --force-refresh`) to regenerate; corrupt/incomplete
+cache entries fall through to regeneration. `evidence_hash` is still stored (and `cache.get()` still
+offers strict hash-checked reuse) so staleness stays detectable. New test
+`test_existence_based_reuse_and_force_refresh` (Stage 5 now **10/10**, full suite **50/50**). Verified:
+a live `build` over the 263 existing cache files makes **zero API calls** (`provenance: cache=263`).
+
 ## 4. Naming history (so nobody resurrects an old path)
 
 ```
@@ -414,7 +483,9 @@ python -m modules.correlation.build                     # -> data/processed/inci
 python -m modules.correlation.evaluate                  # alert reduction + correlation accuracy + ablation
 python -m modules.risk_fusion.build                     # -> data/processed/incidents_scored.parquet (+ events_scored.parquet)
 python -m modules.risk_fusion.evaluate                  # precision/recall@K + recovery + calibration table + ablation
-python -m pytest tests/ -q                              # expect: 40 passed (6 stage0 + 9 stage1 + 8 stage2 + 8 stage3 + 9 stage4)
+python -m modules.llm_triage.build --no-llm             # -> data/processed/incidents_triaged.parquet (+ triage_cache/, offline)
+python -m modules.llm_triage.evaluate                   # coverage + provenance + canonical spot-check + ablation
+python -m pytest tests/ -q                              # expect: 50 passed (6 stage0 + 9 stage1 + 8 stage2 + 8 stage3 + 9 stage4 + 10 stage5)
 python modules/data_simulation/replay/stream.py --instant --limit 5   # sanity-check live replay
 ```
 Last confirmed: Stage 0 → 9,857 events (4,000/4,357/1,500 per source), 1,710 risky (17.3%), all four
@@ -425,19 +496,26 @@ reduction 8%. Stage 3 → 4,288 flagged → 529 incidents, alert reduction 89%, 
 homogeneity 0.88 / completeness 0.99 / V-measure 0.93, recall lifted to 100% by bridge expansion.
 Stage 4 → 529 incidents scored (44 CRITICAL / 219 HIGH / 266 LOW), precision@50 96% (recovered from
 24% event-level), band≥HIGH P=68.4%/R=99.5%, calibration reliability predicted≈observed every bin.
-Full suite 40/40 green.
+Stage 5 → 263 CRITICAL+HIGH incidents triaged live via gpt-4o-mini (100%, mean confidence 0.852),
+existence-based cache reuse makes reruns cost-free (`provenance: cache=263`, zero API calls), all four
+canonical incidents triaged, MITRE coverage 100%. Full suite 50/50 green.
 
 ## 7. What a new session should do next
 
 1. Read this file, then `docs/ephemeral_risk_detection_analysis.md` for the design rationale behind
    whatever you're about to touch.
-2. If picking up `modules/llm_triage/` (the next module): load `data/processed/incidents_scored.parquet`
-   (Stage 4's output — incidents ranked by `risk_score`, with `risk_band`, evidence cols
-   `max_exposure_window_s`/`max_privilege_level`/`max_novelty`/`any_privileged`/`mean_p_event`) +
-   `data/processed/events_scored.parquet` (`record_id`/`raw_risk`/`p_event`). For each incident assemble
-   the evidence bundle (members via the Stage-3 `member_record_ids` / `event_incidents.parquet`, graph
-   subgraph, cohort context, scores) and return **validated structured JSON** (intent, confidence, MITRE
-   techniques, guardrails) — design doc §10. Strict schema + validation + retry, **cache responses so the
-   live demo never needs a network call**, templated fallback. Start with the 44 CRITICAL-band incidents.
-3. After any meaningful change, append a new dated entry to §3 of this file — don't rewrite history,
+2. If picking up `modules/dashboard/` (Stage 6, the next module): load
+   `data/processed/incidents_triaged.parquet` (Stage 5 triage cards — `incident_id`, `risk_rank`,
+   `risk_band`, `risk_score`, `likely_intent`, `confidence`, `mitre`, `key_evidence`, `disambiguation`,
+   `recommended_guardrails`, `triage_source`) + `incidents_scored.parquet` (ranked queue + evidence
+   cols) + `events_scored.parquet`. Build the forensic/alert UI (Streamlit or Plotly Dash, design doc
+   §11): the **alert-fatigue curve** (raw flags → suppressed → correlated → triaged, the numbers are
+   in the ablation tables), the ranked incident queue, and per-incident triage cards. Per design doc
+   §13 also surface time-to-detection vs resource lifetime. The dashboard reads cached artifacts only —
+   no live model/LLM calls in the demo path.
+3. If running the **live** LLM triage (not needed for the dashboard, which reads the cached parquet):
+   `cp .env.example .env`, set `OPENAI_API_KEY`, `pip install -r requirements.txt`, then
+   `python -m modules.llm_triage.build` (gpt-4o-mini, caches per-incident JSON). The `--no-llm` path
+   and the whole test suite need no key.
+4. After any meaningful change, append a new dated entry to §3 of this file — don't rewrite history,
    add to it.
