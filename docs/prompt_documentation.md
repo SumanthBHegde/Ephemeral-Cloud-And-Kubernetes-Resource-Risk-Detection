@@ -12,22 +12,6 @@ one for implementation within the 48-hour hackathon.
 ### Prompt 1
 
 ```
-gave the screen shots of presentation based on these 4 problem sets what
-questions can be asked
-
-https://societegenerale.iamneo.ai/pb-5-grc-exception-policy-waiver-management/
-https://societegenerale.iamneo.ai/third-party-vendor-risk-management/
-https://societegenerale.iamneo.ai/ephemeral-cloud-kubernetes-resource-risk-detection/
-https://societegenerale.iamneo.ai/identity-sprawl-privileged-access-abuse-detection-in-hybrid-enterprises/
-```
-
-**Purpose:** Generate questions to ask the presenters after reviewing the problem statement slides.
-
----
-
-### Prompt 2
-
-```
 This is the detailed flyer given by the Société general for the hackathon.
 Add on these to the analysis in the previous chat. and also look at the three
 options for the solutions and consider its extended highlight feature we can
@@ -51,7 +35,7 @@ and available tooling.
 
 ---
 
-### Prompt 3
+### Prompt 2
 
 ```
 How should i implement this. any public datasets available
@@ -357,11 +341,74 @@ context.md should be updated after every conversation
 
 ---
 
-## Result of this phaseyhxplored all four hackathon problem statements.
+## Result of Phase 1
 
+- Explored all four hackathon problem statements.
 - Performed multiple rounds of comparative analysis.
 - Researched datasets and synthetic data strategies.
 - Evaluated implementation feasibility and judge appeal.
 - Planned enhancements beyond the baseline solutions.
 - Selected **Problem Statement 3 – Ephemeral Cloud Kubernetes Resource Risk Detection** as the
   final project.
+
+---
+
+## Phase 2 - Stage One Build (Ingest & Enrich)
+
+### Goal
+
+Build Stage 1 of the detection pipeline: normalize the three authentic Stage-Zero sources into one
+unified event schema, assign behavioral cohorts, and compute per-event context features (§5 of
+design doc) that unblock the two-stage detector.
+
+---
+
+### Prompt 27
+
+```
+See the @context.md and at the end of the iteration update the context.md.
+Now in the ingest and enrich we have to use the replay of the data_simulation to simulate the logs.
+Essentially the data cleaning also takes place. You are the lead developer here, ask questions
+whenever necessary about the model. I think we need to parse the jsonl to csv for next layer
+correct me if necessary.
+```
+
+**Purpose:** Plan Stage 1 (ingest_enrich) with design decisions about data format, consumption mode,
+cohort assignment, and feature engineering scope.
+
+**Key decisions locked:**
+- Output format: **Parquet only** (not CSV) — per design doc §16; CSV is lossy on nested/list columns
+- Consumption mode: **Both** — batch file-read (deterministic) + live stream wrapper (demo)
+- Scope: **Full Stage 1** — normalize + clean + all §5 features + §6 cohorts
+- Cohort method: **Rule-assisted, deterministic** (K8s SA → CloudTrail role → IdP prefix → CIDR)
+- Cohort baseline: **Empirical from data** (not config) — avoids circularity
+
+---
+
+### Prompt 28
+
+```
+/init
+Please analyze this codebase and create a CLAUDE.md file, which will be given to future instances
+of Claude Code to operate in this repository.
+```
+
+**Purpose:** Initialize/update CLAUDE.md with Stage 1 completion, practical commands, and module
+status.
+
+---
+
+## Result of Phase 2
+
+- **Stage 1 built and verified:** normalizer (3 sources), rule-assisted cohort assignment,
+  §5 feature engineering pipeline, batch + live streaming modes.
+- **Output:** `data/processed/events_enriched.parquet` — 9,857 enriched rows, label join 1:1.
+- **Tests:** 9/9 green (normalization, features, cohorts, confusability, determinism).
+- **Full test suite:** 15/15 passed (6 Stage 0 + 9 Stage 1).
+- **Key finding:** 629 rows assigned `unknown` cohort — exactly the identity_anomaly attack
+  (contractor-* federated users, all `is_risky=1`). Cohort accuracy 100% on 9,228 recognizable
+  principals.
+- **Confusability verified:** crypto vs legit burst_rate overlap (10.82 vs 10.57), separation
+  from metadata (tag_completeness 0.00 vs 0.41, off_hours 0.83 vs 0.07).
+- **Updated:** context.md (chronological entry + status table), CLAUDE.md (repo status, commands,
+  Stage 1 overview).
