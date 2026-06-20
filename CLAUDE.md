@@ -14,10 +14,13 @@ context.md is worse than no context.md because the next session will trust it.
 ## Repository status
 
 This repo is building a near-real-time detection pipeline for ephemeral cloud/Kubernetes risk, as a
-hackathon submission. **Stage Zero (the synthetic telemetry generator + replay streamer) is built and
-verified** — see [modules/data_simulation/README.md](modules/data_simulation/README.md).
-Stages 1–6 (ingest/enrich, detection, correlation, risk fusion, LLM triage, dashboard) are not yet
-built; their folders exist as scaffolding only.
+hackathon submission. **Stage Zero and Stage One are complete and verified** — see their READMEs.
+- **Stage Zero** ([modules/data_simulation/](modules/data_simulation/)): synthetic telemetry generator,
+  replay streamer, validator. Outputs three JSONL streams + label sidecar + data dictionary.
+- **Stage One** ([modules/ingest_enrich/](modules/ingest_enrich/)): normalizes + cleans + assigns cohorts
+  + computes §5 features. Outputs `data/processed/events_enriched.parquet`.
+
+Stages 2–6 (detection, correlation, risk fusion, LLM triage, dashboard) have scaffolding in place.
 
 ## Repository layout
 
@@ -25,27 +28,39 @@ built; their folders exist as scaffolding only.
 docs/                            planning docs (read-only reference, see below)
 data/
   raw/                           Stage Zero output: cloudtrail.jsonl, k8s_audit.jsonl,
-                                  idp_session.jsonl, labels.jsonl, data_dictionary.md (gitignored)
-  processed/                     future stages' derived feature tables / incident records
+                                  idp_session.jsonl, labels.jsonl, data_dictionary.md 
+  processed/                     Stage One+ output: events_enriched.parquet, ... 
 modules/
-  data_simulation/                DONE — generator, replay streamer, validator (see its README)
-  ingest_enrich/                  not yet built
-  detection/                       "
-  correlation/                     "
-  risk_fusion/                     "
-  llm_triage/                      "
-  dashboard/                       "
-tests/                           pytest suite (currently: stage0 regression tests)
+  data_simulation/                DONE — generator, replay streamer, validator
+  ingest_enrich/                  DONE — normalizer, cohort assignment, §5 features
+  detection/                      next — two-stage detector (recall-first + suppression)
+  correlation/                    future — graph incident clustering
+  risk_fusion/                    future — risk calibration
+  llm_triage/                     future — structured triage narratives
+  dashboard/                      future — forensic/alert UI
+tests/                           pytest suite (15 tests: 6 stage0 + 9 stage1)
 ```
 
-Run Stage Zero from the repo root:
+## Common development tasks
+
 ```bash
+# Setup
 pip install -r requirements.txt
-python -m modules.data_simulation.generator.build   # generate data/raw/
-python modules/data_simulation/validate.py           # 16-check dataset gate
-python -m pytest tests/test_stage0.py -q                   # determinism + mix + ordering tests
-python -m pytest tests/test_stage0.py::test_deterministic_same_seed -q   # run a single test
-python modules/data_simulation/replay/stream.py --instant | head   # live-replay smoke test
+
+# Full pipeline: build → enrich → test
+python -m modules.data_simulation.generator.build   # generate data/raw/ (seed 1337)
+python modules/data_simulation/validate.py           # 16-check dataset gate (expect: 16/16 PASS)
+python -m modules.ingest_enrich.build               # normalize → data/processed/events_enriched.parquet
+
+# Run tests
+python -m pytest tests/ -q                          # full suite (15 passed)
+python -m pytest tests/test_stage0.py -q            # stage zero only
+python -m pytest tests/test_stage1.py -q            # stage one only
+python -m pytest tests/test_stage1.py::test_confusability_preserved -q  # single test
+
+# Live inspection
+python modules/data_simulation/replay/stream.py --instant --limit 5   # raw replay (first 5 events)
+python -c "import pandas as pd; df=pd.read_parquet('data/processed/events_enriched.parquet'); print(df.shape, df.columns.tolist())"  # inspect enriched table
 ```
 
 The planning documents, in order of authority:
@@ -157,6 +172,18 @@ sourcing a build dependency. Concretely:
   dataset exists. Mimic session behavior (TTL patterns, off-hours, scope mismatch) from the
   `AssumeRole` records implicit in the cloud-audit sources above.
 
+## What Stage One produces
+
+**Input:** three JSONL source files from Stage Zero (CloudTrail, K8s audit, IdP events) + their ground-truth sidecar.
+
+**Process:** normalize each source into one unified event schema, assign behavioral cohorts (§6 of design doc), compute §5 context features (burst rate, novelty, tag completeness, privilege, exposure, off-hours, cohort-deviation).
+
+**Output:** `data/processed/events_enriched.parquet` with all source columns plus 8 feature columns, one row per input record, deterministically ordered, joined 1:1 to labels via `record_id`. This is the direct input to Stage Two (detection).
+
+**Key design decision:** cohort assignment is rule-assisted (no ML) — K8s SA subject → CloudTrail role → IdP email prefix → source-IP CIDR. Unmatched principals → `unknown` cohort (a signal in itself; don't silently force the wrong cohort). Empirically, 629 unknowns = exactly the identity_anomaly attack rows (all `is_risky=1`).
+
+**Verified:** 9,857 enriched rows, label join 1:1, cohort accuracy 100% on recognizable principals, confusability preserved (burst_rate overlap, context features separate).
+
 ## Source event schemas (see analysis doc §4 "Data Simulation Design" and §5 "Feature Engineering")
 
 - **Cloud audit logs:** `event_id`, `timestamp`, `event_type` (RunInstances/AssumeRole/CreateBucket/
@@ -187,6 +214,11 @@ path) before committing build time on `modules/detection/`.
 ## Build order — backend lane first, then ML (strict dependency chain)
 
 `simulator → features + cohorts → two-stage detector → graph + fusion → LLM triage → dashboard + eval`
+
+Status: Stages 0–1 done. Stage 2 (detection) is next; resolve the **Isolation-Forest-vs-TabPFN decision**
+(design doc §16) before writing ML code. The enriched Parquet table is detection's input; the two-stage
+detector outputs candidate flags (anomaly score + cohort suppression); stages 3–7 consume those flags
+and build incidents, risk scores, narratives, and the UI.
 
 Backend-first is deliberate, not just convenient: ship a working, demoable V1 (normalized event store,
 rule tripwires, statistical baselines, API) before any ML code. The rule/statistical pre-filter then
