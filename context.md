@@ -28,19 +28,16 @@ Full design rationale lives in [docs/ephemeral_risk_detection_analysis.md](docs/
 | `modules/ingest_enrich/` | **DONE, verified** — normalize + clean + cohorts + §5 features, 9/9 tests green |
 | `modules/detection/` | **DONE, verified** — tripwires + IF/ECOD ensemble + cohort suppression, 8/8 tests green |
 | `modules/correlation/` | **DONE, verified** — entity graph + connected-component incidents, alert reduction 89%, 8/8 tests green |
-| `modules/risk_fusion/` | not started — empty scaffold |
+| `modules/risk_fusion/` | **DONE, verified** — fused raw score + OOF isotonic calibration + incident aggregation, precision@50 96%, 9/9 tests green |
 | `modules/llm_triage/` | not started — empty scaffold |
 | `modules/dashboard/` | not started — empty scaffold |
 
-**Next concrete step:** build `modules/risk_fusion/` — score the incidents from
-`data/processed/incidents.parquet` (Stage 3's output) at the **incident level** (calibrated
-risk + severity ranking). This is where event-level precision (which intentionally dropped to
-~24% at correlation, as benign bridge neighbours join incidents) is recovered as incident-level
-risk ranking. Score AFTER clustering is already satisfied — Stage 3 only clusters. Inputs:
-`incidents.parquet` (one row per incident, with `severity_floor`, `max_ensemble_score`,
-`tripwire_hits`, `n_flagged`/`n_bridge`, `edge_types`, source mix) + `event_incidents.parquet`
-(per-event `record_id → incident_id` map, all 9,857 events). `severity` in `data/raw/labels.jsonl`
-is the risk-quality ground truth (precision/recall@K).
+**Next concrete step:** build `modules/llm_triage/` — a triage *agent* (not a prose generator) that
+consumes `data/processed/incidents_scored.parquet` (Stage 4's output, ranked by `risk_score`) +
+`events_scored.parquet` + the per-incident evidence (members, graph subgraph, cohort context) and
+returns **validated structured JSON** (intent, confidence, MITRE techniques, guardrails) per incident.
+Design doc §10: strict schema + validation + retry, cache responses so the live demo never needs a
+network call, templated fallback. Start from the top-ranked incidents (the CRITICAL band, 44 of them).
 
 ## 3. Chronological history
 
@@ -321,6 +318,58 @@ table:
 | + Stage-2 suppression | 33.6% | 84.2% | 8% |
 | **+ graph correlation** | **24.1%** | **100%** | **89%** |
 
+### 2026-06-20 — Stage 4 (`modules/risk_fusion/`) built and verified
+Built the incident-level risk-fusion + calibration stage. **9/9 new tests green; full suite 40/40
+(6 stage0 + 9 stage1 + 8 stage2 + 8 stage3 + 9 stage4).** No new deps (scikit-learn/scipy already present).
+
+Decisions locked with the user this session (4-question Q&A) and one mid-build empirical correction:
+| Question | Answer |
+|---|---|
+| Calibration approach | **Calibrate on event-level `is_risky`** (more data than ~529 incidents). Out-of-fold isotonic so no event is scored by a model that saw it. |
+| Score inputs | **Re-join member events + aggregate §5 features** (not incident-columns-only). |
+| Fusion weights | **Fixed expert weights** (documented, tunable constants) — not learned. |
+| Incident severity GT (eval) | **Max `severity` over `is_risky=1` members**; benign-only → none. |
+
+Pipeline (`fuse/` package): `score.py` event-level `raw_risk` = fixed-weight fusion of
+`ensemble_score` + `tripwire_hit` signal + exposure (`0.5·public_exposure_flag + 0.5·norm(exposure_window_s)`)
++ `norm(privilege_level)` + `norm(principal_novelty)` (weights 0.30/0.25/0.20/0.10/0.15, **label-free**);
+`calibrate.py` `StratifiedKFold(5, seed 1337)` out-of-fold `IsotonicRegression` → `p_event` (**the one
+sanctioned label touch** — §9/§16 permit held-out-label calibration); `aggregate.py`
+`risk_score = 0.7·max + 0.3·mean` of member `p_event`, tripwire floor via
+`FLOOR_THRESHOLDS={"CRITICAL":0.80,"HIGH":0.60}`, bands (CRITICAL≥0.80/HIGH≥0.60/MEDIUM≥0.35/LOW),
+`risk_rank` (**label-free**). Outputs `incidents_scored.parquet` (primary, INCIDENT_COLS + `risk_score`/
+`risk_band`/`risk_rank` + evidence cols) + `events_scored.parquet` (`record_id`/`raw_risk`/`p_event`).
+
+Decisions made and explicitly rejected this session (review-driven, see plan file):
+- **`KFold` → `StratifiedKFold`** — at 17.3% risky rate plain KFold can fit a degenerate isotonic curve
+  on a positive-starved fold. Stratify.
+- **CRITICAL floor DEFERRED** (user choice) — upstream emits `severity_floor ∈ {HIGH, NONE}` only today
+  ([tripwires.py:43](modules/detection/detect/tripwires.py#L43),
+  [incidents.py:95](modules/correlation/graph/incidents.py#L95)); no CRITICAL exists yet. `FLOOR_THRESHOLDS`
+  already carries the CRITICAL branch forward-compatibly (dormant). Stage 4 did NOT modify Stage 2/3.
+
+**Key implementation finding (kept for the next session): precision recovery is won by RANKING, not the
+band cut.** The `burst_rate>10` tripwire fires on *legit* autoscaler bursts too, so flooring every
+`severity_floor==HIGH` incident to the HIGH band re-imports the tripwire's false positives — band≥HIGH
+gives **P=68.4% / R=99.45%** (a high-recall triage cut, by design: the floor guarantees a tripwire
+incident is never dismissed). The real precision recovery is the **ranked queue**: ordering incidents by
+`risk_score` gives **precision@10=90%, @20=95%, @50=96%, @100=79%** — recovered from the 24% event-level
+precision after correlation. This is §13's prescribed risk-quality metric (precision/recall@K vs injected
+severity), so the tests gate on precision@K, not band precision. Calibration is near-perfect (predicted ≈
+observed in every reliability bin).
+
+**Verified this session (`evaluate.py`):** 529 incidents scored (44 CRITICAL / 219 HIGH / 266 LOW; no
+MEDIUM), `risk_score` ∈ [0.056, 0.885]. Extended ablation table:
+| Configuration | Precision | Recall | Alert reduction |
+|---|---|---|---|
+| tripwires only | 43.5% | 72.5% | 38% |
+| + Stage-1 ensemble | 31.1% | 84.2% | 0% |
+| + Stage-2 suppression | 33.6% | 84.2% | 8% |
+| + graph correlation | 24.1% | 100.0% | 89% |
+| **+ risk fusion (incident, band≥HIGH)** | **68.4%** | **99.5%** | **89%** |
+
+(precision@K is the headline recovery: 96% @50. The band≥HIGH row above is the high-recall cut.)
+
 ## 4. Naming history (so nobody resurrects an old path)
 
 ```
@@ -363,7 +412,9 @@ python -m modules.detection.build                       # -> data/processed/dete
 python -m modules.detection.evaluate                    # P/R/F1 + ablation table
 python -m modules.correlation.build                     # -> data/processed/incidents.parquet (+ event_incidents.parquet)
 python -m modules.correlation.evaluate                  # alert reduction + correlation accuracy + ablation
-python -m pytest tests/ -q                              # expect: 31 passed (6 stage0 + 9 stage1 + 8 stage2 + 8 stage3)
+python -m modules.risk_fusion.build                     # -> data/processed/incidents_scored.parquet (+ events_scored.parquet)
+python -m modules.risk_fusion.evaluate                  # precision/recall@K + recovery + calibration table + ablation
+python -m pytest tests/ -q                              # expect: 40 passed (6 stage0 + 9 stage1 + 8 stage2 + 8 stage3 + 9 stage4)
 python modules/data_simulation/replay/stream.py --instant --limit 5   # sanity-check live replay
 ```
 Last confirmed: Stage 0 → 9,857 events (4,000/4,357/1,500 per source), 1,710 risky (17.3%), all four
@@ -372,19 +423,21 @@ canonical incidents present (`INC-A=40, INC-B=3, INC-C=7, INC-D=2`), 16/16 valid
 Stage 2 → full pipeline recall 84.2%, precision 33.6% (precision is won later by fusion), alert
 reduction 8%. Stage 3 → 4,288 flagged → 529 incidents, alert reduction 89%, correlation accuracy
 homogeneity 0.88 / completeness 0.99 / V-measure 0.93, recall lifted to 100% by bridge expansion.
-Full suite 31/31 green.
+Stage 4 → 529 incidents scored (44 CRITICAL / 219 HIGH / 266 LOW), precision@50 96% (recovered from
+24% event-level), band≥HIGH P=68.4%/R=99.5%, calibration reliability predicted≈observed every bin.
+Full suite 40/40 green.
 
 ## 7. What a new session should do next
 
 1. Read this file, then `docs/ephemeral_risk_detection_analysis.md` for the design rationale behind
    whatever you're about to touch.
-2. If picking up `modules/risk_fusion/` (the next module): load `data/processed/incidents.parquet`
-   (Stage 3's output — one row per incident with `severity_floor`, `max_ensemble_score`,
-   `tripwire_hits`, `n_flagged`/`n_bridge`, `edge_types`, source-mix counts, time span) and
-   `data/processed/event_incidents.parquet` (per-event `record_id → incident_id`, all 9,857 events,
-   `None` for non-members). Score/calibrate risk at the **incident level** and rank — this recovers
-   the precision that intentionally dropped at correlation. `severity` in `data/raw/labels.jsonl` is
-   the risk-quality ground truth (precision/recall@K); join on `record_id` via the event map. Scoring
-   AFTER clustering is already satisfied (Stage 3 only clusters).
+2. If picking up `modules/llm_triage/` (the next module): load `data/processed/incidents_scored.parquet`
+   (Stage 4's output — incidents ranked by `risk_score`, with `risk_band`, evidence cols
+   `max_exposure_window_s`/`max_privilege_level`/`max_novelty`/`any_privileged`/`mean_p_event`) +
+   `data/processed/events_scored.parquet` (`record_id`/`raw_risk`/`p_event`). For each incident assemble
+   the evidence bundle (members via the Stage-3 `member_record_ids` / `event_incidents.parquet`, graph
+   subgraph, cohort context, scores) and return **validated structured JSON** (intent, confidence, MITRE
+   techniques, guardrails) — design doc §10. Strict schema + validation + retry, **cache responses so the
+   live demo never needs a network call**, templated fallback. Start with the 44 CRITICAL-band incidents.
 3. After any meaningful change, append a new dated entry to §3 of this file — don't rewrite history,
    add to it.

@@ -415,6 +415,106 @@ status.
 
 ---
 
+## Phase 5 - Stage Four Build (Risk Fusion & Calibration)
+
+### Goal
+
+Build Stage 4: score the Stage-3 incidents at the **incident level** (the non-negotiable "score AFTER
+clustering" ordering from design doc §3). Recover the event-level precision that intentionally dropped
+to ~24% at correlation (benign bridge events joining incidents) as **incident-level risk ranking**: fuse
+per-event signals, calibrate raw scores to probabilities, aggregate to incidents, and rank them.
+
+---
+
+### Prompt 33 (Planning Q&A)
+
+```
+Let's start the next stage planning. Get all context from @context.md and @CLAUDE.md.
+Ask many questions to finalize the decision.
+```
+
+**Purpose:** Plan Stage 4 with four critical design decisions locked via user Q&A.
+
+**Key decisions locked:**
+- **Calibration:** `StratifiedKFold(5)` out-of-fold isotonic on event-level `is_risky` (more data than
+  ~529 incidents; avoids degenerate folds at ~17% risky rate)
+- **Score inputs:** Re-join member events to `events_enriched` and aggregate §5 features (exposure,
+  privilege, novelty), not incident-columns-only
+- **Fusion weights:** Fixed expert constants (anomaly 0.30 / signal 0.25 / exposure 0.20 / privilege
+  0.10 / novelty 0.15), not learned — no label dependence beyond calibration
+- **Incident severity GT (eval):** Max `severity` over `is_risky=1` members; benign-only → none
+
+**Review corrections (from user feedback):**
+- `KFold` → `StratifiedKFold` — plain KFold at 17.3% risky rate can land a fold with too few positives
+  and fit a degenerate isotonic curve
+- `EXPOSURE_BLEND = 0.5` constant specified explicitly (unspecified in plan; now `0.5·public_exposure
+  + 0.5·norm(exposure_window_s)`)
+- INC-D end-to-end test added — the buried credential-abuse incident must surface HIGH/CRITICAL
+- CRITICAL floor deferred — upstream emits `severity_floor ∈ {HIGH, NONE}` only; `FLOOR_THRESHOLDS`
+  includes CRITICAL forward-compatibly but stays dormant
+
+---
+
+### Prompt 34 (Implementation)
+
+```
+Implement Stage 4 — the full risk-fusion module: fuse/score.py (raw_risk), fuse/calibrate.py
+(isotonic), fuse/aggregate.py (incident scoring), pipeline.py, build.py, evaluate.py, tests.
+Verify: precision@K > 75%, calibration monotonic, determinism, incident severity floor enforced.
+```
+
+**Purpose:** Build the complete risk-fusion module mirroring Stages 1–3 structure.
+
+**Implemented:**
+- `fuse/score.py` — event-level `raw_risk = Σ(weight · feature)` with fixed weights (label-free)
+- `fuse/calibrate.py` — `StratifiedKFold` + `IsotonicRegression` out-of-fold (the ONE sanctioned
+  label touch; no event scored by a model that saw it)
+- `fuse/aggregate.py` — `risk_score = 0.7·max + 0.3·mean` of member `p_event`, tripwire floor
+  (`FLOOR_THRESHOLDS = {"CRITICAL": 0.80, "HIGH": 0.60}`), bands, rank (label-free)
+- `pipeline.py` (`fuse` pure + `run_fusion` CLI-facing) mirroring Stage 3
+- `build.py` — argparse CLI with summary stats (bands distribution, top 5 incidents)
+- `evaluate.py` — precision/recall@K vs `severity` (incident GT = max over risky members), reliability
+  table, extended ablation (`+ risk fusion` row)
+- `test_stage4.py` — 9 tests: determinism, schema, floor enforced, isotonic monotonic, rank
+  permutation, canonical INC-A/B/C ranked HIGH, INC-D credential-abuse surface HIGH, precision@K
+  recovery, label isolation
+
+**Key finding (empirical correction):**
+The `burst_rate>10` tripwire fires on legit autoscaler bursts too, so flooring every
+`severity_floor==HIGH` incident to band HIGH re-imports false positives. **Precision recovery is won
+by RANKING, not the band cut**: precision@10=90%, @20=95%, **@50=96%**, @100=79% (vs 24% event-level).
+This is §13's prescribed risk-quality metric (precision/recall@K), so tests gate on precision@K.
+`band≥HIGH` gives P=68.4%/R=99.5% — a deliberate high-recall triage cut (floor prevents tripwire
+incidents from being dismissed).
+
+---
+
+## Result of Phase 5
+
+- **Stage 4 built and verified:** four-layer fused scorer (raw_risk + OOF isotonic + aggregation +
+  ranking), full structure mirroring Stages 1–3.
+- **Output:** `data/processed/incidents_scored.parquet` (primary, INCIDENT_COLS + risk_score/band/rank
+  + evidence) + `data/processed/events_scored.parquet` (per-event raw_risk/p_event)
+- **Tests:** 9/9 green (determinism, schema, floor, monotonicity, rank, canonical recovery, end-to-end
+  INC-D, precision@K, label isolation)
+- **Full test suite:** 40/40 passed (6 Stage 0 + 9 Stage 1 + 8 Stage 2 + 8 Stage 3 + 9 Stage 4)
+- **Calibration:** near-perfect (predicted ≈ observed in every reliability bin)
+- **Precision recovery:** **P@50=96%** (recovered from 24% event-level). Full ablation:
+  | Configuration | Precision | Recall | Alert reduction |
+  |---|---|---|---|
+  | tripwires only | 43.5% | 72.5% | 38% |
+  | + Stage-1 ensemble | 31.1% | 84.2% | 0% |
+  | + Stage-2 suppression | 33.6% | 84.2% | 8% |
+  | + graph correlation | 24.1% | 100% | 89% |
+  | **+ risk fusion** | **P@K ranker** | **99.5%** | **89%** |
+- **Incident distribution:** 44 CRITICAL / 219 HIGH / 266 LOW (529 total)
+- **Key decision rationale:** precision@K is the honest metric (the ranked queue analysts see);
+  band≥HIGH is secondary (high-recall triage cut). CRITICAL floor deferred — forward-compatible.
+- **Updated:** context.md (§2 status, §3 chronology, §6 verify, §7 next), CLAUDE.md (status lines),
+  README.md (design doc §10 overview)
+
+---
+
 ## Phase 3 - Stage Two Build (Two-Stage Detection) + Model Decision
 
 ### Goal

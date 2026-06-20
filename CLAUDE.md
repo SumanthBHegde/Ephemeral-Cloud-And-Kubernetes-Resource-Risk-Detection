@@ -14,13 +14,10 @@ context.md is worse than no context.md because the next session will trust it.
 ## Repository status
 
 This repo is building a near-real-time detection pipeline for ephemeral cloud/Kubernetes risk, as a
-hackathon submission. **Stage Zero and Stage One are complete and verified** — see their READMEs.
-- **Stage Zero** ([modules/data_simulation/](modules/data_simulation/)): synthetic telemetry generator,
-  replay streamer, validator. Outputs three JSONL streams + label sidecar + data dictionary.
-- **Stage One** ([modules/ingest_enrich/](modules/ingest_enrich/)): normalizes + cleans + assigns cohorts
-  + computes §5 features. Outputs `data/processed/events_enriched.parquet`.
-
-Stages 2–6 (detection, correlation, risk fusion, LLM triage, dashboard) have scaffolding in place.
+hackathon submission. **Stages Zero–Four are complete and verified** (see context.md for the full
+chronology and metrics) — Stage Zero (data_simulation), Stage One (ingest_enrich), Stage Two
+(detection), Stage Three (correlation), Stage Four (risk_fusion). Stages 5–6 (LLM triage, dashboard)
+have empty scaffolds and are next.
 
 ## Repository layout
 
@@ -33,12 +30,12 @@ data/
 modules/
   data_simulation/                DONE — generator, replay streamer, validator
   ingest_enrich/                  DONE — normalizer, cohort assignment, §5 features
-  detection/                      next — two-stage detector (recall-first + suppression)
-  correlation/                    future — graph incident clustering
-  risk_fusion/                    future — risk calibration
-  llm_triage/                     future — structured triage narratives
+  detection/                      DONE — two-stage detector (recall-first + suppression)
+  correlation/                    DONE — graph incident clustering
+  risk_fusion/                    DONE — fused score + isotonic calibration + incident ranking
+  llm_triage/                     next — structured triage narratives
   dashboard/                      future — forensic/alert UI
-tests/                           pytest suite (15 tests: 6 stage0 + 9 stage1)
+tests/                           pytest suite (40 tests: 6 stage0 + 9 stage1 + 8 stage2 + 8 stage3 + 9 stage4)
 ```
 
 ## Common development tasks
@@ -214,10 +211,9 @@ Claude-as-few-shot-scorer is a documented last-resort fallback only. Full ration
 
 `simulator → features + cohorts → two-stage detector → graph + fusion → LLM triage → dashboard + eval`
 
-Status: Stages 0–1 done. Stage 2 (detection) is next; the Stage-1 model is decided (IsolationForest +
-ECOD ensemble — see §16 above), so the ML lane is unblocked. The enriched Parquet table is detection's
-input; the two-stage detector outputs candidate flags (anomaly score + cohort suppression); stages 3–7
-consume those flags and build incidents, risk scores, narratives, and the UI.
+Status: Stages 0–4 done (simulator → enrich → detection → correlation → risk_fusion). **Stage 5
+(`modules/llm_triage/`) is next** — consume `data/processed/incidents_scored.parquet` (ranked incidents)
+and emit validated structured triage JSON per incident (design doc §10). Stage 6 (dashboard) follows.
 
 Backend-first is deliberate, not just convenient: ship a working, demoable V1 (normalized event store,
 rule tripwires, statistical baselines, API) before any ML code. The rule/statistical pre-filter then
