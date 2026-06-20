@@ -3,3 +3,7 @@ pandas>=2.0
 pyarrow>=14
 PyYAML>=6.0
 pytest>=8.0
+# Stage 2 (detection): unsupervised Isolation Forest + ECOD ensemble
+scikit-learn>=1.4
+pyod>=2.0
+scipy>=1.11

@@ -221,7 +221,7 @@ This converts the brief's stated blocker ("no stable identity to baseline") into
 
 ## 7. Two-Stage Detection — Differentiator #2
 
-**Stage 1 (recall-first).** Isolation Forest over the feature matrix, threshold tuned so true attacks are almost never missed; expect many candidates. Optionally ensemble with an autoencoder reconstruction-error score.
+**Stage 1 (recall-first).** An **unsupervised ensemble** over the feature matrix, threshold tuned so true attacks are almost never missed; expect many candidates. Two complementary detectors vote and their min-max-normalized scores are averaged: **Isolation Forest** (scikit-learn) as the primary, and **ECOD** (PyOD — Empirical-Cumulative-distribution Outlier Detection) as a required second vote. ECOD is parameter-free, deterministic, and exposes per-dimension outlier contributions that become evidence for the LLM-triage bundle. Neither sees the held-out labels. (See §16 for why this pairing was chosen over TabPFN / an autoencoder.)
 
 **Stage 2 (precision via context suppression).** Drop candidates that are normal for their cohort:
 - HPA scaling event with a corresponding traffic/CPU metric → suppress.
@@ -407,17 +407,24 @@ print(f"Alert reduction: {raw} -> {inc} ({(1 - inc/raw)*100:.0f}% reduction)")
 ## 16. Technology Stack
 
 - **Language/data:** Python, Pandas, NumPy/SciPy.
-- **ML:** scikit-learn (Isolation Forest, isotonic/Platt calibration), optional autoencoder (PyTorch/Keras) as a secondary signal.
+- **ML:** scikit-learn (Isolation Forest, isotonic/Platt calibration) + PyOD (ECOD) for the Stage-1 ensemble.
 - **Graph:** NetworkX.
 - **LLM:** any chat-completions API with structured JSON output + schema validation; cached responses; templated fallback.
 - **Dashboard:** Streamlit or Plotly Dash (Plotly charts).
 - **Storage:** Parquet/SQLite for events and incident records.
 
-### ML-model tension to resolve
+### ML-model decision (RESOLVED)
 
-The design specifies Isolation Forest as primary. **However, consider TabPFN / TabPFN-2.5** (a pretrained tabular foundation model — no training loop, scores in seconds) specifically to avoid burning the Claude Code Pro usage window on training/tuning cycles. TabPFN is pretrained on millions of synthetic datasets and never trained on your actual data — feed it the engineered feature table, get scores back immediately. No hyperparameter search, no tune-rerun cycle.
+**Decision: an unsupervised ensemble of scikit-learn `IsolationForest` (primary) + PyOD `ECOD` (required second vote).** Grounded in what the enrich stage actually hands the detector — `data/processed/events_enriched.parquet`, ~9,857 rows × ~8 numeric features:
 
-**Fallback if integration time runs short:** use Claude itself as a few-shot anomaly scorer — feed the engineered feature row plus 3-4 labeled examples, ask for a score and rationale. No training, no model file, but less rigorous. Treat as fallback only.
+- **Isolation Forest primary.** A ~10k×8 tabular matrix is squarely IF's sweet spot. It is unsupervised, so it preserves the project's held-out-label honesty (labels are joined 1:1 only for eval). It fits in under a second with no hyperparameter search, and keeps the stack on scikit-learn (which also does the §9 calibration).
+- **ECOD (PyOD) as a required ensemble vote.** Parameter-free, deterministic, fast on tabular data, also unsupervised. Its per-dimension outlier contributions are interpretable and feed the LLM-triage evidence bundle. Stage-1 score = mean of the two min-max-normalized scores.
+
+**Considered and rejected for the critical path:**
+- **TabPFN / TabPFN-2.5** — a pretrained tabular foundation model was floated to avoid burning the Claude Code Pro window on train/tune cycles, but that motivation evaporates: Isolation Forest already has no train/tune cycle to avoid. TabPFN is also fundamentally a *supervised* in-context classifier, so using it would force labels into the model and a train/test split — contradicting the recall-first, no-leakage architecture — and adds a heavy dependency with sample/feature caps.
+- **PyTorch / Keras autoencoder** — overkill on data this small (8 features, ~10k rows tends to overfit a net) and reintroduces exactly the training loop IF avoids. ECOD provides the desired "second independent view" without it.
+
+**Fallback only (not in the build):** Claude as a few-shot anomaly scorer — feed an engineered feature row plus 3–4 labeled examples, ask for a score and rationale. No training, no model file, but less rigorous. Documented as a last resort if both detectors were ever unavailable.
 
 ---
 
@@ -464,7 +471,7 @@ The design specifies Isolation Forest as primary. **However, consider TabPFN / T
 
 ## 20. Next Steps
 
-- [ ] Confirm feature-table integration path for TabPFN (or select Isolation Forest + autoencoder).
+- [x] **Stage-1 model decided** (see §16): unsupervised Isolation Forest + ECOD ensemble. Remaining build sub-tasks: wire the §5 feature matrix into both detectors, set the recall-first threshold, normalize + average the two scores.
 - [ ] Finalize cohort-assignment rules (naming convention parsing, action-signature clustering).
 - [ ] Build LLM narrative prompt template; test JSON schema validation and retry logic.
 - [ ] Design feedback-loop UX on the dashboard (TP/FP buttons, staged rollout of suppression rules).

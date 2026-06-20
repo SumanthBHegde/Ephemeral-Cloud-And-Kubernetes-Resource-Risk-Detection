@@ -204,21 +204,20 @@ autoencoder (PyTorch/Keras) as a secondary signal; NetworkX for the graph; any c
 with JSON-schema-validated output; Streamlit or Plotly Dash for the dashboard; Parquet/SQLite for
 event and incident storage.
 
-**ML-model tension to resolve before building the ML lane:** the design doc specifies Isolation Forest
-as primary but flags **TabPFN / TabPFN-2.5** (a pretrained tabular foundation model — no training loop,
-scores in seconds) as worth considering instead, specifically to avoid burning the Claude Code Pro
-usage window on training/tuning cycles, with using Claude itself as a few-shot scorer as a
-fallback-of-last-resort. Not yet decided — confirm the choice (and TabPFN's feature-table integration
-path) before committing build time on `modules/detection/`.
+**ML-model decision (RESOLVED):** the Stage-1 anomaly model is an **unsupervised ensemble of
+scikit-learn `IsolationForest` (primary) + PyOD `ECOD` (required second vote)**, scores min-max
+normalized and averaged. TabPFN (supervised, forces label leakage + a train/test split) and a
+PyTorch/Keras autoencoder (overkill + a training loop on ~10k×8 data) were considered and rejected;
+Claude-as-few-shot-scorer is a documented last-resort fallback only. Full rationale in design doc §16.
 
 ## Build order — backend lane first, then ML (strict dependency chain)
 
 `simulator → features + cohorts → two-stage detector → graph + fusion → LLM triage → dashboard + eval`
 
-Status: Stages 0–1 done. Stage 2 (detection) is next; resolve the **Isolation-Forest-vs-TabPFN decision**
-(design doc §16) before writing ML code. The enriched Parquet table is detection's input; the two-stage
-detector outputs candidate flags (anomaly score + cohort suppression); stages 3–7 consume those flags
-and build incidents, risk scores, narratives, and the UI.
+Status: Stages 0–1 done. Stage 2 (detection) is next; the Stage-1 model is decided (IsolationForest +
+ECOD ensemble — see §16 above), so the ML lane is unblocked. The enriched Parquet table is detection's
+input; the two-stage detector outputs candidate flags (anomaly score + cohort suppression); stages 3–7
+consume those flags and build incidents, risk scores, narratives, and the UI.
 
 Backend-first is deliberate, not just convenient: ship a working, demoable V1 (normalized event store,
 rule tripwires, statistical baselines, API) before any ML code. The rule/statistical pre-filter then

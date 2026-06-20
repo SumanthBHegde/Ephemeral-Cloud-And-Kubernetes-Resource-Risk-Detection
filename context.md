@@ -26,17 +26,17 @@ Full design rationale lives in [docs/ephemeral_risk_detection_analysis.md](docs/
 |---|---|
 | `modules/data_simulation/` | **DONE, verified** — generator + replay streamer + validator, all checks green |
 | `modules/ingest_enrich/` | **DONE, verified** — normalize + clean + cohorts + §5 features, 9/9 tests green |
-| `modules/detection/` | not started — empty scaffold |
+| `modules/detection/` | **DONE, verified** — tripwires + IF/ECOD ensemble + cohort suppression, 8/8 tests green |
 | `modules/correlation/` | not started — empty scaffold |
 | `modules/risk_fusion/` | not started — empty scaffold |
 | `modules/llm_triage/` | not started — empty scaffold |
 | `modules/dashboard/` | not started — empty scaffold |
 
-**Next concrete step:** build `modules/detection/` — the two-stage detector (recall-first anomaly
-model + cohort-aware suppression) over the enriched feature table at
-`data/processed/events_enriched.parquet`. **Before writing any ML code, resolve the open
-Isolation-Forest-vs-TabPFN decision** (§5 below / design doc §16) — it gates this module. Stage 1
-(ingest_enrich) is done and provides every §5 feature the detector needs.
+**Next concrete step:** build `modules/correlation/` — the NetworkX graph that clusters the
+Stage-2 detection flags (`data/processed/detections.parquet`) into incidents. This is also where
+the headline ≥40% alert reduction is won (collapsing 40 autoscaler alerts → 1 incident); Stage 2's
+suppression alone only buys ~8%, by design. Score incidents AFTER clustering (non-negotiable
+ordering). Stage 2 (detection) is done and emits `predicted_risky` + scores per event.
 
 ## 3. Chronological history
 
@@ -205,6 +205,49 @@ the choice of Problem Statement 3 / Ephemeral Cloud) into
 text + stated purpose, plus the phase's closing results list); no content added or reinterpreted. The
 source PDF is left in place in `docs/` alongside the new `.md`.
 
+### 2026-06-20 — Stage-1 model decision resolved + Stage 2 (`modules/detection/`) built and verified
+Resolved the long-open Isolation-Forest-vs-TabPFN decision (§5) and built the full two-stage
+detector. **8/8 new tests green; full suite 23/23 (6 Stage 0 + 9 Stage 1 + 8 Stage 2).**
+
+Decision (via Q&A this session, user confirmed): Stage-1 anomaly model = **unsupervised ensemble of
+scikit-learn `IsolationForest` (primary) + PyOD `ECOD` (required second vote)**. The user upgraded
+ECOD from "optional" to a **required** ensemble member. TabPFN and a PyTorch/Keras autoencoder were
+considered and rejected (see §5 / design doc §16, all rewritten from "open tension" → resolved).
+Docs synced: design doc §7/§16/§20, `modules/detection/README.md`, CLAUDE.md, `requirements.txt`
+(+`scikit-learn`, `pyod`, `scipy`).
+
+Module `modules/detection/` (mirrors Stage 1's structure):
+- `detect/tripwires.py` — always-on deterministic rules forcing a HIGH severity floor (never
+  suppressed): NodePort 0.0.0.0/0, bare privileged pod, `burst_rate>10`, broad RBAC, **and
+  `cohort=="unknown"`**.
+- `detect/anomaly.py` — Stage 1, recall-first: median-impute + `StandardScaler` over the 8 §5
+  features, `IsolationForest(n_estimators=200, contamination=0.30, random_state=1337)` + PyOD
+  `ECOD`, each min-max normalized, averaged into `ensemble_score`; `is_candidate` = top ~35%.
+- `detect/suppression.py` — Stage 2, no ML: suppress a candidate only if cohort-normal (known
+  cohort, `cohort_deviation` ≤ cohort 75th pct, `tag_completeness≥0.5`/NaN, in-hours, not a
+  tripwire). `predicted_risky = (is_candidate & ~is_suppressed) | tripwire_hit`.
+- `pipeline.py` (`run_detection`), `build.py` (CLI → `data/processed/detections.parquet`),
+  `evaluate.py` (label join → P/R/F1 + ablation table), real `README.md`; `tests/test_stage2.py`.
+
+**Key implementation finding (kept for the next session):** the recall-first IF+ECOD ensemble alone
+caught only ~47% recall — it *cannot* catch the 629 `identity_anomaly` rows because they are the
+`unknown` cohort and form a dense same-shape cluster (not sparse outliers an anomaly model flags).
+Those 629 are ~100% `is_risky` (per the ingest README), so adding `cohort=="unknown"` as a context
+**tripwire** is high-precision and lifts recall to **84.2%** with near-zero added false positives.
+This is the project thesis made literal: detect on context, not events.
+
+**Verified this session (ablation table from `evaluate.py`):**
+| Configuration | Precision | Recall | Alert reduction |
+|---|---|---|---|
+| tripwires only | 43.5% | 72.5% | 38% |
+| + Stage-1 ensemble | 31.1% | 84.2% | 0% |
+| + Stage-2 suppression (full) | 33.6% | 84.2% | 8% |
+
+Recall target (>70%) met. Precision is intentionally low here — it is won by the **graph
+correlation + risk fusion** stages next (the ≥40% alert reduction also lands there; suppression
+alone buys ~8%). The ablation already shows the two-stage mechanism working: the ensemble lifts
+recall 72%→84%, and suppression recovers precision 31%→33.6% **without** giving back recall.
+
 ## 4. Naming history (so nobody resurrects an old path)
 
 ```
@@ -228,10 +271,13 @@ Same evolution applies to the empty future-stage folders:
   from the same principal in one window can be one high-severity incident together; per-event scoring
   before clustering misses that. Score AFTER clustering — this is called out as non-negotiable in both
   CLAUDE.md and the design doc.
-- **Open, not yet decided:** Isolation Forest vs. TabPFN for the anomaly model (design doc §16 flags
-  TabPFN as a way to avoid burning the Claude Code Pro usage window on train/tune cycles, with
-  "Claude-as-few-shot-scorer" as a fallback-of-last-resort). Decide this before starting
-  `modules/detection/`.
+- **Resolved (was open):** Stage-1 anomaly model = **unsupervised ensemble of scikit-learn
+  `IsolationForest` (primary) + PyOD `ECOD` (required second vote)**, scores min-max normalized and
+  averaged. **TabPFN rejected** (supervised → forces label leakage + a train/test split, heavy dep;
+  and its only rationale — avoiding train/tune cycles — is moot since IF has no tune cycle).
+  **PyTorch/Keras autoencoder rejected** (overkill + a training loop on ~10k×8 data; ECOD gives the
+  "second independent view" without it). Claude-as-few-shot-scorer kept only as a documented
+  last-resort fallback. See design doc §16. Decided + implemented 2026-06-20 (see §3).
 
 ## 6. How to verify the current state still holds
 
@@ -240,21 +286,27 @@ pip install -r requirements.txt
 python -m modules.data_simulation.generator.build      # regenerate data/raw/ (seed 1337, deterministic)
 python modules/data_simulation/validate.py              # expect: 16/16 PASS
 python -m modules.ingest_enrich.build                   # -> data/processed/events_enriched.parquet
-python -m pytest tests/ -q                              # expect: 15 passed (6 stage0 + 9 stage1)
+python -m modules.detection.build                       # -> data/processed/detections.parquet
+python -m modules.detection.evaluate                    # P/R/F1 + ablation table
+python -m pytest tests/ -q                              # expect: 23 passed (6 stage0 + 9 stage1 + 8 stage2)
 python modules/data_simulation/replay/stream.py --instant --limit 5   # sanity-check live replay
 ```
 Last confirmed: Stage 0 → 9,857 events (4,000/4,357/1,500 per source), 1,710 risky (17.3%), all four
 canonical incidents present (`INC-A=40, INC-B=3, INC-C=7, INC-D=2`), 16/16 validator green. Stage 1 →
 9,857 enriched rows, label join 1:1, cohort accuracy 100% (non-unknown), confusability preserved.
-Full suite 15/15 green.
+Stage 2 → full pipeline recall 84.2%, precision 33.6% (precision is won later by graph+fusion), alert
+reduction 8% so far. Full suite 23/23 green.
 
 ## 7. What a new session should do next
 
 1. Read this file, then `docs/ephemeral_risk_detection_analysis.md` for the design rationale behind
    whatever you're about to touch.
-2. If picking up `modules/detection/`: **first resolve the Isolation-Forest-vs-TabPFN decision** (§5),
-   then read the enriched feature columns from `modules/ingest_enrich/README.md` and load
-   `data/processed/events_enriched.parquet` — that table (cohorts + §5 features) is the detector's
-   input. Labels for eval are in `data/raw/labels.jsonl`, joined on `record_id` (never read at runtime).
+2. If picking up `modules/correlation/` (the next module): load `data/processed/detections.parquet`
+   (Stage 2's output — enriched rows + `predicted_risky`, `ensemble_score`, `severity_floor`, etc.)
+   and build the NetworkX entity multigraph; incidents = connected components within an
+   identity+namespace+time envelope. The cross-source linkage keys are already surfaced as columns
+   by Stage 1 (`assumed_role_id`, `external_session_id`, `session_name`, `shared_event_id`). Score
+   AFTER clustering (non-negotiable). This is where the ≥40% alert reduction is won. `campaign_id` in
+   `data/raw/labels.jsonl` is the correlation-accuracy ground truth (join on `record_id`).
 3. After any meaningful change, append a new dated entry to §3 of this file — don't rewrite history,
    add to it.
