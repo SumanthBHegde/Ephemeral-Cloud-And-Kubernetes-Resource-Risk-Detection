@@ -27,16 +27,20 @@ Full design rationale lives in [docs/ephemeral_risk_detection_analysis.md](docs/
 | `modules/data_simulation/` | **DONE, verified** — generator + replay streamer + validator, all checks green |
 | `modules/ingest_enrich/` | **DONE, verified** — normalize + clean + cohorts + §5 features, 9/9 tests green |
 | `modules/detection/` | **DONE, verified** — tripwires + IF/ECOD ensemble + cohort suppression, 8/8 tests green |
-| `modules/correlation/` | not started — empty scaffold |
+| `modules/correlation/` | **DONE, verified** — entity graph + connected-component incidents, alert reduction 89%, 8/8 tests green |
 | `modules/risk_fusion/` | not started — empty scaffold |
 | `modules/llm_triage/` | not started — empty scaffold |
 | `modules/dashboard/` | not started — empty scaffold |
 
-**Next concrete step:** build `modules/correlation/` — the NetworkX graph that clusters the
-Stage-2 detection flags (`data/processed/detections.parquet`) into incidents. This is also where
-the headline ≥40% alert reduction is won (collapsing 40 autoscaler alerts → 1 incident); Stage 2's
-suppression alone only buys ~8%, by design. Score incidents AFTER clustering (non-negotiable
-ordering). Stage 2 (detection) is done and emits `predicted_risky` + scores per event.
+**Next concrete step:** build `modules/risk_fusion/` — score the incidents from
+`data/processed/incidents.parquet` (Stage 3's output) at the **incident level** (calibrated
+risk + severity ranking). This is where event-level precision (which intentionally dropped to
+~24% at correlation, as benign bridge neighbours join incidents) is recovered as incident-level
+risk ranking. Score AFTER clustering is already satisfied — Stage 3 only clusters. Inputs:
+`incidents.parquet` (one row per incident, with `severity_floor`, `max_ensemble_score`,
+`tripwire_hits`, `n_flagged`/`n_bridge`, `edge_types`, source mix) + `event_incidents.parquet`
+(per-event `record_id → incident_id` map, all 9,857 events). `severity` in `data/raw/labels.jsonl`
+is the risk-quality ground truth (precision/recall@K).
 
 ## 3. Chronological history
 
@@ -248,6 +252,75 @@ correlation + risk fusion** stages next (the ≥40% alert reduction also lands t
 alone buys ~8%). The ablation already shows the two-stage mechanism working: the ensemble lifts
 recall 72%→84%, and suppression recovers precision 31%→33.6% **without** giving back recall.
 
+### 2026-06-20 — Stage 3 (`modules/correlation/`) built and verified
+Built the graph-correlation stage that clusters Stage-2 flags into incidents. **8/8 new tests
+green; full suite 31/31 (6 stage0 + 9 stage1 + 8 stage2 + 8 stage3).** `requirements.txt`
+gained `networkx>=3.0`.
+
+Decisions locked with the user this session (plan was reviewed and revised twice before approval):
+| Question | Answer |
+|---|---|
+| Graph scope | **Flagged seeds + 1-hop expansion** — seed from `predicted_risky`, expand exactly one hop along strong linkage keys to pull in directly-linked *bridge* events even when unflagged. Not flagged-only, not the full 9,857-event graph. |
+| Output | **Both** — `incidents.parquet` (one row per incident, primary for risk_fusion) + `event_incidents.parquet` (per-event `record_id → incident_id`, ALL 9,857 events; non-members get `incident_id=None`). |
+| `source_mix` storage | **Three flat int columns** (`source_cloudtrail_count`/`source_k8s_count`/`source_idp_count`), not a dict — derived with a fixed mapping to the literal source values (`cloudtrail`/`k8s_audit`/`idp_session`) + `.get(...,0)` so a missing source is 0, never a KeyError. |
+| Alert-reduction denominator | **`tripwire_hit | is_candidate`** — the *same* denominator Stage 2 used (verified at `detection/evaluate.py:64`), so the 8% → 89% jump is apples-to-apples. |
+
+**Key design deviation from design doc §8 (documented, deliberate):** §8 specifies an *entity*
+multigraph (principals/sessions/resources as nodes, events as edges). Implementation inverts this
+to an **event-node graph with time-gated, typed edges**. Why: design §8's entity model cannot
+enforce the identity+namespace+time envelope (§18) because nodes have no temporal scope. One
+service account (`replicaset-controller`) produces one timeless principal node, and all
+autoscaler bursts across all namespaces and all time chain into one mega-incident. The envelope
+can only be enforced *at edge-creation time*, so edges (not nodes) carry the temporal gate. The
+event-node model makes the envelope a structural property: `add_edge_only_if(same_entity AND
+within_time_window AND same_namespace)`. Connected-component output is functionally identical to
+the entity model; the incident artifact still surfaces the entity view (`principal_ids`,
+`namespaces`, `resource_ids`, `edge_types`). 
+
+The 1-hop guarantee is enforced at **build time** (not component time): within each edge key,
+only seed-containing clusters survive and are star-connected from a seed; the invariant **every
+edge has ≥1 seed endpoint** holds — exactly seed→bridge (1 hop) and seed→bridge←seed (cross-source),
+never seed→bridge→bridge.
+
+Edge rules (grounded in the actual linkage values, not config trust): `same_principal`
+(`principal_id`, 30-min window, namespace-partitioned), `same_session` (`session_name`, 30 min —
+the **only** link from INC-C's IdP login to its AssumeRole), `external_session`
+(`external_session_id`, 30 min), `shared_event` (`shared_event_id`, ungated — a UUID, unique per
+API call), `same_resource` (`resource_id`+`principal_id`, 2-h window — bridges INC-A's
+RunInstances→TerminateInstances across a 91-min gap on one instance id). Windows are tunable
+constants in `graph/entities.py`.
+
+Module files: `graph/{entities,build_graph,incidents}.py` (+ `__init__.py` exporting `build_graph`,
+`extract_incidents`, `INCIDENT_COLS`, the window constants), `pipeline.py` (`correlate` pure +
+`run_correlation` CLI-facing), `build.py`, `evaluate.py` (reuses `_load_labels`/`_prf` from
+`detection.evaluate` and `sklearn.homogeneity_completeness_v_measure`), real `README.md`; plus
+`tests/test_stage3.py`.
+
+**Implementation findings worth keeping:**
+- **Graph correlation recovers missed detections.** Recall jumps **84% → 100%**: bridge expansion
+  pulls in the ~16% of `is_risky` events the detector missed (they were 1-hop from a flagged seed).
+  This is a real, measurable second benefit of correlation beyond noise reduction.
+- **Event-level precision drops to ~24% at correlation** (benign bridge neighbours join incidents).
+  This is expected and *correct* — precision is now an **incident-level** concern won by the next
+  stage (risk_fusion ranks incidents by risk). Do not "fix" it inside correlation.
+- **INC-D's two labelled events legitimately split into two incidents** — they share no surfaced
+  linkage key (`session_name=oncall` vs `resource_id=oncall-escalation`, different principals). The
+  credential-abuse `rbac_change` still surfaces as its own HIGH incident; the autoscaler noise
+  around it collapses. The `test_autoscaler_collapse` assertion is therefore on INC-A (clean 40→1),
+  and a separate `test_credential_abuse_captured` asserts INC-D's real alert is a HIGH member.
+
+**Verified this session (`evaluate.py`):** 4,288 flagged events → **529 incidents**, **alert
+reduction 89%** (4,638 raw flags → 529; target ≥40%), **correlation accuracy vs `campaign_id`:
+homogeneity 0.88 / completeness 0.99 / V-measure 0.93**. Canonical recovery: INC-A 40→1, INC-B
+3→1, INC-C 7→1 (cross-source, spans CloudTrail+IdP), INC-D 2→2 (by design). Extended ablation
+table:
+| Configuration | Precision | Recall | Alert reduction |
+|---|---|---|---|
+| tripwires only | 43.5% | 72.5% | 38% |
+| + Stage-1 ensemble | 31.1% | 84.2% | 0% |
+| + Stage-2 suppression | 33.6% | 84.2% | 8% |
+| **+ graph correlation** | **24.1%** | **100%** | **89%** |
+
 ## 4. Naming history (so nobody resurrects an old path)
 
 ```
@@ -288,25 +361,30 @@ python modules/data_simulation/validate.py              # expect: 16/16 PASS
 python -m modules.ingest_enrich.build                   # -> data/processed/events_enriched.parquet
 python -m modules.detection.build                       # -> data/processed/detections.parquet
 python -m modules.detection.evaluate                    # P/R/F1 + ablation table
-python -m pytest tests/ -q                              # expect: 23 passed (6 stage0 + 9 stage1 + 8 stage2)
+python -m modules.correlation.build                     # -> data/processed/incidents.parquet (+ event_incidents.parquet)
+python -m modules.correlation.evaluate                  # alert reduction + correlation accuracy + ablation
+python -m pytest tests/ -q                              # expect: 31 passed (6 stage0 + 9 stage1 + 8 stage2 + 8 stage3)
 python modules/data_simulation/replay/stream.py --instant --limit 5   # sanity-check live replay
 ```
 Last confirmed: Stage 0 → 9,857 events (4,000/4,357/1,500 per source), 1,710 risky (17.3%), all four
 canonical incidents present (`INC-A=40, INC-B=3, INC-C=7, INC-D=2`), 16/16 validator green. Stage 1 →
 9,857 enriched rows, label join 1:1, cohort accuracy 100% (non-unknown), confusability preserved.
-Stage 2 → full pipeline recall 84.2%, precision 33.6% (precision is won later by graph+fusion), alert
-reduction 8% so far. Full suite 23/23 green.
+Stage 2 → full pipeline recall 84.2%, precision 33.6% (precision is won later by fusion), alert
+reduction 8%. Stage 3 → 4,288 flagged → 529 incidents, alert reduction 89%, correlation accuracy
+homogeneity 0.88 / completeness 0.99 / V-measure 0.93, recall lifted to 100% by bridge expansion.
+Full suite 31/31 green.
 
 ## 7. What a new session should do next
 
 1. Read this file, then `docs/ephemeral_risk_detection_analysis.md` for the design rationale behind
    whatever you're about to touch.
-2. If picking up `modules/correlation/` (the next module): load `data/processed/detections.parquet`
-   (Stage 2's output — enriched rows + `predicted_risky`, `ensemble_score`, `severity_floor`, etc.)
-   and build the NetworkX entity multigraph; incidents = connected components within an
-   identity+namespace+time envelope. The cross-source linkage keys are already surfaced as columns
-   by Stage 1 (`assumed_role_id`, `external_session_id`, `session_name`, `shared_event_id`). Score
-   AFTER clustering (non-negotiable). This is where the ≥40% alert reduction is won. `campaign_id` in
-   `data/raw/labels.jsonl` is the correlation-accuracy ground truth (join on `record_id`).
+2. If picking up `modules/risk_fusion/` (the next module): load `data/processed/incidents.parquet`
+   (Stage 3's output — one row per incident with `severity_floor`, `max_ensemble_score`,
+   `tripwire_hits`, `n_flagged`/`n_bridge`, `edge_types`, source-mix counts, time span) and
+   `data/processed/event_incidents.parquet` (per-event `record_id → incident_id`, all 9,857 events,
+   `None` for non-members). Score/calibrate risk at the **incident level** and rank — this recovers
+   the precision that intentionally dropped at correlation. `severity` in `data/raw/labels.jsonl` is
+   the risk-quality ground truth (precision/recall@K); join on `record_id` via the event map. Scoring
+   AFTER clustering is already satisfied (Stage 3 only clusters).
 3. After any meaningful change, append a new dated entry to §3 of this file — don't rewrite history,
    add to it.

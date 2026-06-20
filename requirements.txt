@@ -7,3 +7,5 @@ pytest>=8.0
 scikit-learn>=1.4
 pyod>=2.0
 scipy>=1.11
+# Stage 3 (correlation): entity graph + connected-component incidents
+networkx>=3.0

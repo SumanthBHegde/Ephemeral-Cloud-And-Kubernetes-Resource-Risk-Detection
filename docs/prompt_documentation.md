@@ -495,3 +495,138 @@ cohort suppression. Make it pass the required recall and alert-reduction targets
 - **Updated:** design doc §7/§16/§20 (model decision resolved), detection README, CLAUDE.md,
   requirements.txt (+scikit-learn, pyod, scipy), context.md (status table + chronological
   history).
+
+---
+
+## Phase 4 - Stage Three Build (Graph Correlation)
+
+### Goal
+
+Cluster Stage-2 detection flags into incidents using a NetworkX entity graph. This is where the
+headline **alert reduction** is won (40 autoscaler alerts → 1 incident) and where cross-source
+chains become single traced incidents. Lock the graph design (especially the seed-originated 1-hop
+guarantee and the time/namespace envelope) and verify canonical incident recovery.
+
+---
+
+### Prompt 31 (Synthesized from session)
+
+```
+Plan Stage 3 — the correlation module. The user asked two critical design questions:
+1. Which events should become nodes? (flagged-only vs. anchored with 1-hop expansion)
+2. What outputs should Stage 3 emit? (incidents only vs. both incidents + event map)
+
+Lock these decisions via Q&A, then design the implementation plan with exact schema specs
+(source_*_count, edge_types, tripwire_hits) to prevent implementation drift.
+```
+
+**Purpose:** Plan Stage 3 with user-locked design decisions before touching code.
+
+**Key decisions locked via user Q&A:**
+- **Graph scope:** Flagged seeds + 1-hop expansion (not flagged-only, not full 9,857-event graph)
+  — seed from `predicted_risky`, expand one hop along strong linkage keys to pull in bridge events
+  (e.g. INC-C's benign IdP login connecting the compromised session)
+- **Output:** Both — `incidents.parquet` (primary for risk_fusion) + `event_incidents.parquet`
+  (per-event map, all 9,857 events; non-members get `incident_id=None` for risk_fusion's timeline
+  and the dashboard's inventory view)
+- **`source_*_count` schema:** Three flat int columns (not dict) — `source_cloudtrail_count` /
+  `source_k8s_count` / `source_idp_count`, derived with fixed mapping to literal source values
+  (`cloudtrail` / `k8s_audit` / `idp_session`) + `.get(..., 0)` to avoid KeyError
+- **Alert-reduction denominator:** Locked to `tripwire_hit | is_candidate` — identical to Stage 2's
+  denominator (verified at `detection/evaluate.py:64`) so the 8% → ≥40% jump is apples-to-apples
+
+**Five plan-review rounds identified drift risks:**
+1. 1-hop enforcement must be at **build time** (not component time) — spec explicit so implementation
+   can't silently do 2-hop expansion
+2. INC-C test dependency on IdP login being flagged — **verified** (all 7 INC-C members are
+   `predicted_risky=True` via `tripwire_hit`)
+3. Alert-reduction denominator must be consistent — **locked** to Stage 2's denominator
+4. `source_mix` storage format — **changed to flat ints** from dict to keep table vectorizable
+5. Events not in any incident — **explicit handling**: they receive `incident_id=None` and still
+   appear in `event_incidents.parquet`
+
+---
+
+### Prompt 32 (Synthesized from session)
+
+```
+Implement Stage 3 — the full graph-correlation module. Build:
+- graph/entities.py (edge specs, time-cluster helpers)
+- graph/build_graph.py (MultiGraph, seed-originated edges, 1-hop envelope)
+- graph/incidents.py (connected components → incident rows)
+- pipeline.py, build.py, evaluate.py (mirroring Stage 2 structure)
+- test_stage3.py (8 tests per plan)
+
+Verify: alert reduction ≥40%, canonical incident recovery, 1-hop guarantee, correlation accuracy
+vs campaign_id.
+```
+
+**Purpose:** Implement the complete correlation module test-first.
+
+**Key design note (deliberate deviation from §8):**
+Design §8 specifies entity-node graph (principals/sessions/resources as nodes, events as edges).
+Implementation inverts to **event-node graph with time-gated, typed edges** because:
+- Entity-node model cannot enforce the identity+namespace+time envelope — one `replicaset-controller`
+  node would chain every autoscaler burst across 5 days into one mega-incident
+- Event-node model enforces the envelope **structurally at edge-creation time**: edges exist only
+  between events within a time window AND in the same namespace (cloud events group by identity)
+- The invariant **every edge has ≥1 seed endpoint** prevents 2-hop bridge expansion
+- Connected-component output is functionally identical to §8; the incident artifact still surfaces
+  the entity view (`principal_ids`, `namespaces`, `resource_ids`, `edge_types`)
+
+**Implemented:**
+- `graph/entities.py` — 5 edge specs (same_principal, same_session, external_session, shared_event,
+  same_resource), each with a linkage key and time window (30 min weak keys, 2 h resource window);
+  time_cluster_ids helper for gating
+- `graph/build_graph.py` — MultiGraph builder; star-connects seed-containing clusters from seed
+  rep (enforces the **every edge has ≥1 seed endpoint** invariant); isolated seeds added as nodes
+- `graph/incidents.py` — connected-components → incident rows (INCIDENT_COLS schema); deterministic
+  numbering by (start_time, smallest record_id); ground-truth columns joined only in evaluate.py
+- `pipeline.py` — `correlate(df)` (pure) + `run_correlation(source, out_path, map_out)` (CLI-facing)
+- `build.py` — argparse CLI with summary stats (incidents, members, multi-event, high-severity,
+  cross-source)
+- `evaluate.py` — reuses `_load_labels()` and `_prf()` from detection; adds
+  `sklearn.homogeneity_completeness_v_measure` for correlation accuracy vs `campaign_id`; extends
+  ablation table with `+ graph correlation` row
+- `test_stage3.py` — 8 tests: schema, one_hop_only, autoscaler_collapse, cross_source_chain,
+  credential_abuse_captured, envelope_no_overmerge, alert_reduction_target, event_map_complete
+- README.md, graph/__init__.py
+
+**Verified (python -m modules.correlation.evaluate):**
+- **Alert reduction: 89%** (4,638 raw flags → 529 incidents; target ≥40%)
+- **Correlation accuracy vs campaign_id:** homogeneity 0.88, completeness 0.99, V-measure 0.93
+- **Canonical recovery:** INC-A 40→1, INC-B 3→1, INC-C 7→1 (cross-source), INC-D 2→2 (by design;
+  the credential-abuse `rbac_change` still surfaces as HIGH)
+- **Bridge expansion recovery:** recall lifted 84% → 100% (unflagged risky events recovered by
+  1-hop from seeds)
+- **Extended ablation:**
+  | Configuration | Precision | Recall | Alert reduction |
+  |---|---|---|---|
+  | tripwires only | 43.5% | 72.5% | 38% |
+  | + Stage-1 ensemble | 31.1% | 84.2% | 0% |
+  | + Stage-2 suppression | 33.6% | 84.2% | 8% |
+  | **+ graph correlation** | **24.1%** | **100%** | **89%** |
+
+---
+
+## Result of Phase 4
+
+- **Stage 3 built and verified:** event-node graph with seed-originated 1-hop edges, time/namespace
+  envelope, deterministic incident numbering, full structure mirroring Stages 1–2.
+- **Output:** `data/processed/incidents.parquet` (529 rows, INCIDENT_COLS schema) +
+  `data/processed/event_incidents.parquet` (9,857 rows, complete event map)
+- **Tests:** 8/8 green (schema, 1-hop enforcement, autoscaler collapse, cross-source chain,
+  credential-abuse capture, envelope hold, alert reduction, event map completeness)
+- **Full test suite:** 31/31 passed (6 Stage 0 + 9 Stage 1 + 8 Stage 2 + 8 Stage 3)
+- **Design deviation (documented):** inverted §8's entity-node to event-node with time-gated edges
+  to enforce the envelope structurally. Functionally equivalent output; better correctness.
+  Updated README, entities.py, build_graph.py, context.md with explicit reasoning.
+- **Key findings:**
+  - 1-hop guarantee (every edge has ≥1 seed endpoint) prevents 2-hop bridge leakage
+  - Bridge expansion recovers ~16% missed detections (recall 84% → 100%)
+  - Event-level precision drops to 24% at correlation (expected; incident-level ranking is next stage's job)
+  - Homogeneous incident formation: V-measure 0.93 vs `campaign_id` (very tight grouping)
+  - Envelope holds: namespace-partitioned bursts never merge unrelated web/prod activity
+- **Updated:** CLAUDE.md (Stage 2→3 status), requirements.txt (+networkx>=3.0), context.md
+  (chronological entry + status table + next-step pointer to risk_fusion), README.md (graph model
+  inversion rationale), entities.py / build_graph.py (docstrings updated).
