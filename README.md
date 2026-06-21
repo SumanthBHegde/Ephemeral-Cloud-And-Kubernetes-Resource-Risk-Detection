@@ -8,7 +8,7 @@ before a daily scan ever sees them. It discovers ephemeral assets, detects risky
 correlates events across cloud + Kubernetes + identity logs into incidents, scores them, and emits
 analyst-ready LLM triage narratives with MITRE mapping and remediation.
 
-**🔗 Live demo:** _add your Vercel URL here after deploy_ · **📹 Demo video:** _add link_
+**🔗 Live demo:** <https://sentinel-rho-sooty.vercel.app/app> · **📹 Demo video:** _add link_ · **📄 Report:** [docs/report.md](docs/report.md) · **📊 Slides:** [docs/slides.md](docs/slides.md)
 
 ---
 

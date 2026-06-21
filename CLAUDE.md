@@ -60,6 +60,9 @@ python -m pytest tests/test_stage1.py::test_confusability_preserved -q  # single
 python -m modules.dashboard.build                   # export data/processed/*.parquet -> frontend/public/data/*.json
 cd modules/dashboard/frontend && npm install && npm run dev   # console at http://localhost:5173/app
 
+# Report figures (publication PNGs for docs/report.md, slides, demo video)
+python -m modules.dashboard.figures.build_all       # render all PNGs -> docs/figures/ (run dashboard.build first for the MITRE figure)
+
 # Live inspection
 python modules/data_simulation/replay/stream.py --instant --limit 5   # raw replay (first 5 events)
 python -c "import pandas as pd; df=pd.read_parquet('data/processed/events_enriched.parquet'); print(df.shape, df.columns.tolist())"  # inspect enriched table

@@ -569,6 +569,56 @@ confirmed against `driver.js.d.ts`. **Remaining manual (browser-only):** click-t
 5 steps in both themes, confirm auto-start fires on a cleared `localStorage` and not on reload, and
 that the Help button replays it.
 
+### 2026-06-21 — Documentation artifacts: report figures + report.md + slides + demo script
+Built the judge-facing documentation layer (the win-or-lose hackathon artifact). No new pipeline
+stages — a figure-generation module + four Markdown deliverables. Plan file:
+`~/.claude/plans/lets-plan-the-workflow-virtual-star.md` (approved with a detailed code-grounded
+review; all blockers/medium/nit fixes verified against live data before implementing).
+
+**Figure module — `modules/dashboard/figures/`** (mirrors the existing `confusability.py` convention,
+one file per figure + a `build_all` runner). New: `__init__.py`, `_common.py` (palette, rcParams,
+paths, `load_labels`/`load_metrics`/`save`), and 9 figure scripts + `architecture.py`. All render to
+`docs/figures/*.png` at 150 dpi. Entrypoint `python -m modules.dashboard.figures.build_all`
+(`--only`/`--list`; per-figure try/except + summary; non-zero exit on failure). `requirements.txt`
+gained `matplotlib>=3.8` (it was USED by confusability.py but never pinned). CLAUDE.md gained the
+`build_all` command.
+
+The 10 new figures (confusability already existed): `feature_separation` (8-feature confusability at
+full scale, log1p on skewed cols), `ensemble_scores` (IF/ECOD/ensemble hist by is_risky — honest
+partial overlap), `cohort_risk` (the `unknown=100% risky` money shot, with an assertion guard),
+`graph_incident` (INC-0002 cross-source star graph: IdP→AssumeRole→3×GetObject), `calibration`
+(predicted vs observed, max dev 0.016), `ablation` (5 configs, F1 dropped per the hardcoded-0 fusion
+row, event→incident level break marked), `precision_at_k` (P@50=96%), `alert_funnel` (log-width so
+9857→263 stays legible; derived from parquet not metrics.json), `mitre_frequency` (from metrics.json),
+`architecture` (PNG fallback for the Mermaid block).
+
+**Key implementation facts (kept for next session):**
+- Figures 6/7/8 (`ablation`/`calibration`/`precision_at_k`) are driven LIVE by
+  `modules.risk_fusion.evaluate.evaluate()` — `build_all` computes it ONCE and shares the dict (it
+  re-runs correlate+fuse, ~slow). Numbers verified to match the report table exactly (P@fusion 68.4%,
+  recall@corr 100%, funnel `[9857,3517,3167,529,263]`, calibration max|pred-obs|=0.016).
+- `member_record_ids`/`edge_types` in `incidents_scored.parquet` are numpy **ndarray**, not delimited
+  strings — iterate directly. The fusion ablation row carries `f1=0.0` hardcoded
+  ([risk_fusion/evaluate.py:104](modules/risk_fusion/evaluate.py#L104)) — never plot it.
+- `metrics.json` lives at `modules/dashboard/frontend/public/data/metrics.json` (a frontend export,
+  NOT `data/processed/`); only `mitre_frequency` needs it, so run `dashboard.build` first for that one.
+
+**Deliverables:** `docs/report.md` (expanded to ~10 pages: all 11 figures embedded at their sections +
+a parquet-schema subsection + a Mermaid architecture block + the live URL), `docs/slides.md` (14
+figure-driven slides, `---` breaks for PPT), `docs/demo_script.md` (shot-by-shot ~3-min video script
+targeting the live Vercel URL, reconciled against the shipped UI routes `/app`,`/app/findings`,
+`/app/analytics` + the driver.js Guided-tour button — complements the tour, doesn't duplicate it).
+`README.md` link line updated with the live URL + report/slides links.
+
+**Verified:** `build_all` renders 11/11 figures green; every `![](figures/…)` ref in report.md
+resolves to a file on disk; `--only`/`--list`/unknown-name paths work. Test suite unchanged from the
+pre-existing state — **16 passed, 1 failed, 33 errors, ALL the same `ModuleNotFoundError: pyod`/`openai`
+missing-dep** documented in the prior entry (the figure module imports neither; `pip install pyod
+openai` for a green suite). **Live deploy:** <https://sentinel-rho-sooty.vercel.app/app> (user deployed
+this session). **Remaining manual:** convert report.md→PDF (from inside `docs/` so figure paths
+resolve) and slides.md→PPTX via Claude; record the demo video; paste the video + GitHub URLs into the
+README/report/slides placeholders.
+
 ## 4. Naming history (so nobody resurrects an old path)
 
 ```
