@@ -6,13 +6,16 @@
 > **Arc:** Hook (0:00–0:20) → Why It's Hard / Confusability (0:20–0:50) → Backend Pipeline (0:50–1:20) → Live Demo (1:20–2:25) → Proof / Metrics (2:25–2:50) → Close (2:50–3:00)
 >
 > Total target: **3:00**. Each shot lists **[screen]**, **[say]**, **[do]**.
+>
+> **Speaking tip:** these lines are written to be *said*, not read. Short sentences. Pause at
+> the dashes. Don't rush the numbers — say them slowly and let them land.
 
 ---
 
 ## Shot 1 — Hook: The Problem (0:00–0:20, 20s)
 
 - **[screen]** Title card **"Sentinel"** or Dashboard hero at `/app`. Show the replay panel loading.
-- **[say]** "Spot instances. CI job pods. Assumed-role sessions. They live for minutes and disappear before a security scan ever runs. Attackers know this — they hide inside the noise of things that are *supposed* to be temporary. This is **Sentinel**: near-real-time risk detection for ephemeral cloud and Kubernetes."
+- **[say]** "Spot instances. CI job pods. Temporary login sessions. They live for a few minutes, then they're gone — often before any security scan even runs. Attackers know this. They hide inside things that are *supposed* to be temporary. So we built **Sentinel**: it spots risk in cloud and Kubernetes in near real time."
 - **[do]** Let the dashboard animate in. Don't click yet.
 
 ---
@@ -20,7 +23,7 @@
 ## Shot 2 — Why It's Hard: Confusability (0:20–0:50, 30s)
 
 - **[screen]** Cut to the **confusability figure** (`docs/figures/confusability.png`) — show it as a full-screen image or embed in a slide.
-- **[say]** "Here's the hard part. Look at these two event bursts — same API calls, same burst rate, same volume. One is your autoscaler doing its job. The other is a crypto-miner running on *your* bill. At the event level they are **statistically identical**. Any tool that detects on events alone fails on exactly the cases that matter. The signal isn't in the event — it's in the **context**: who the identity is, whether it's tagged, whether it runs at 3 AM. So we detect on context."
+- **[say]** "Here's what makes this hard. Look at these two bursts of activity. Same API calls. Same speed. Same volume. One is your autoscaler doing its job. The other is a crypto-miner running on *your* bill. At the event level, they're identical. So any tool that looks only at events will fail on the cases that matter most. The real clue isn't in the event — it's in the **context**. Who is this identity? Is it tagged? Is it running at 3 AM? That's what we look at."
 - **[do]** Point to the left panel (overlapping burst_rate distributions → indistinguishable), then the right panel (tag_completeness 0.00 vs 0.54, off_hours 0.83 vs 0.08, spot 0.50 vs 0.00 → separable).
 
 ---
@@ -28,17 +31,18 @@
 ## Shot 3 — Backend Pipeline: Seven Stages in 30s (0:50–1:20, 30s)
 
 - **[screen]** Show the **architecture diagram** (`docs/figures/architecture.png`) — pipeline flow: `Data Simulation → Ingest + Enrich → Detect → Cluster → Score → LLM Triage → Dashboard`.
-- **[say]** "Our pipeline has seven stages. Stage Zero simulates 9,857 labeled events across three log sources — CloudTrail, Kubernetes audit, and IdP sessions — grounded in real AWS and K8s schemas. Stage One normalizes all three into a unified schema and assigns each identity to a **behavioral cohort** — CI runners, HPA autoscalers, human devs — so even a brand-new pod inherits a baseline instantly. Stage Two runs two-stage detection: tripwires always fire on hard rules, then a recall-first anomaly ensemble — Isolation Forest plus ECOD — flags candidates, and a cohort-suppression pass cuts the noise. Stage Three runs **graph correlation** via NetworkX — an entity multigraph with time-gated typed edges that links events across all three sources. Stage Four fuses risk scores at the **incident** level after clustering — never before — and calibrates them with isotonic regression. Stage Five sends each CRITICAL and HIGH incident to **gpt-4o-mini** for structured triage: intent, MITRE, guardrails — validated JSON, cached offline. Stage Six is the SOC dashboard you're seeing now."
+- **[say]** "The pipeline has seven stages. First, we generate nine thousand labeled events across three log sources — cloud, Kubernetes, and login sessions — using real schemas. Next, we clean them up and sort every identity into a **behavioral group** — CI runners, autoscalers, human developers. So even a brand-new pod gets a baseline right away. Then detection runs in two passes. Hard rules always fire first. After that, an anomaly model flags anything unusual, and a second pass removes what's normal *for that group*. Next comes the **graph stage** — we link related events across all three sources into one picture. Then we score the risk, but only *after* grouping, never before — and we calibrate those scores. The riskiest incidents go to an LLM for triage. And finally, everything lands on the dashboard you're looking at."
 - **[do]** Trace the architecture flow left to right / top to bottom as you name each stage.
 
-> **Tip:** This is the densest segment — practice pacing. Aim ~4-5 seconds per stage.
+> **Tip:** This is the densest segment — practice pacing. Aim ~4-5 seconds per stage. Pause
+> between each "First / Next / Then" so it doesn't blur together.
 
 ---
 
 ## Shot 4 — Live Demo: Replay Simulation (1:20–1:50, 30s)
 
 - **[screen]** Navigate to **Dashboard** (`/app`) — point at the **Replay Panel** (hero card, autoplays on mount).
-- **[say]** "The pipeline's headline payoff is the live replay. Watch incidents form in real time as five days of telemetry stream through a virtual clock. The pipeline flags this incident **at the moment it forms** —" *(pause as the before/after annotation appears)* "— but the next *daily* scan wouldn't look for almost **eighteen hours**. By then, the resource is long gone."
+- **[say]** "This is the part we're most proud of — the live replay. Five days of activity, played back on a fast clock. Watch the incidents appear in real time. The pipeline catches this one **the moment it forms** —" *(pause as the before/after annotation appears)* "— but a normal daily scan wouldn't check for almost **eighteen hours**. By then, the resource is long gone."
 - **[do]** Let the replay reach the demo-window incident (INC-0230, densest CRITICAL). Point at the "Traditional scan misses this for 17.9h" annotation. If it already completed, click **restart**.
 
 ---
@@ -46,7 +50,7 @@
 ## Shot 5 — Live Demo: Ranked Findings + Triage Drawer (1:50–2:20, 30s)
 
 - **[screen]** Navigate to **Risk Findings** (`/app/findings`). Click the top CRITICAL finding to open the triage drawer.
-- **[say]** "Instead of nine thousand raw events, the analyst works a ranked queue of **529 incidents**. Open the top one — every incident gets an LLM triage: the likely intent, a confidence score, MITRE techniques, the specific evidence, and — crucially — the **disambiguation**: why this is the attack and not its benign look-alike. Structured JSON from the triage agent, cached, so it's instant and offline. The forensic snapshot captures the resource state at detection time — because by the time you investigate, the pod or session is already gone."
+- **[say]** "Instead of nine thousand raw events, the analyst sees a ranked list of **529 incidents**. Let's open the top one. Every incident comes with a full triage from the LLM. What the attacker is likely doing. How confident we are. The MITRE techniques. The exact evidence. And the key part — why this is the *attack*, and not the harmless version that looks just like it. It's all structured and cached, so it's instant and works offline. And this snapshot saves the resource's state at the moment we caught it — because by the time you investigate, the pod or session is already gone."
 - **[do]** Scroll the drawer: intent → confidence bar → MITRE chips → evidence → disambiguation → forensic snapshot → guardrails → member events.
 
 ---
@@ -54,7 +58,7 @@
 ## Shot 6 — Noise Reduction: Alert Funnel (2:20–2:30, 10s)
 
 - **[screen]** Navigate back to **Dashboard** (`/app`) → point at the **Alert-Fatigue Funnel**.
-- **[say]** "Nine thousand eight hundred raw events → three thousand flagged → five hundred twenty-nine correlated incidents. That's an **eighty-nine percent cut**. Forty autoscaler alerts collapse into one. The SOC investigates five hundred things, not ten thousand."
+- **[say]** "Nine thousand eight hundred raw events. We flag three thousand. Then we group those into five hundred twenty-nine incidents. That's an **eighty-nine percent cut**. Forty autoscaler alerts become one. The team looks at five hundred things, not ten thousand."
 - **[do]** Trace the funnel top to bottom quickly.
 
 ---
@@ -62,7 +66,7 @@
 ## Shot 7 — Proof: Analytics & Ablation (2:30–2:50, 20s)
 
 - **[screen]** Navigate to **Analytics** (`/app/analytics`) — show the ablation table/chart and the Risk Calibration panel.
-- **[say]** "And it's measured, not eyeballed. On 9,857 labeled, reproducible events: **100% recall**, **96% precision on the ranked queue at 50** — beating every target in the brief. This ablation table proves each component earns its place: tripwires alone give 72% recall; add the ensemble and recall climbs to 84%; graph correlation pushes it to 100% while cutting 89% of alerts; risk fusion recovers precision. And the risk scores are calibrated — a 0.8 score really means 80% likely-malicious, predicted vs observed almost dead-on. Everything is **seed-reproducible** and runs fully offline."
+- **[say]** "And we measured all of this — we didn't just eyeball it. On nine thousand labeled events: **100% recall** and **96% precision** at the top of the list. That beats every target we were given. This table shows each part pulling its weight. Hard rules alone catch 72 percent. Add the anomaly model, and it climbs to 84. The graph stage pushes it to 100, while cutting 89 percent of the alerts. And the scores are honest — when we say zero point eight, it really is about 80 percent likely to be an attack. Best of all, anyone can reproduce this. It runs fully offline."
 - **[do]** Show ablation panel (each row adds one differentiator), then Risk Calibration curve hugging the diagonal.
 
 ---
