@@ -8,7 +8,7 @@ before a daily scan ever sees them. It discovers ephemeral assets, detects risky
 correlates events across cloud + Kubernetes + identity logs into incidents, scores them, and emits
 analyst-ready LLM triage narratives with MITRE mapping and remediation.
 
-**🔗 Live demo:** <https://sentinel-rho-sooty.vercel.app/app> · **📹 Demo video:** _add link_ · **📄 Report:** [docs/report.md](docs/report.md) · **📊 Slides:** [docs/slides.md](docs/slides.md)
+**🔗 Live demo:** <https://sentinel-rho-sooty.vercel.app/app> · **📹 Demo video:** https://drive.google.com/file/d/1LnaYogPV3UaAyqidRE5TYY2Esaw8OCsU/view?usp=drivesdk **📄 Report:** [docs/report.md](docs/report.md)
 
 ---
 
@@ -80,6 +80,20 @@ correlated incidents** → 263 triaged. The SOC investigates 529 things, not 9,8
 
 ## Run it locally
 
+**One command** (Git Bash or WSL on Windows, or any Unix shell) — installs
+dependencies, runs the full pipeline from scratch (deterministic, seed 1337), and
+launches the dashboard at <http://localhost:5173/app>:
+
+```bash
+./run.sh
+```
+
+Useful flags: `SKIP_INSTALL=1 ./run.sh` (deps already installed) ·
+`SKIP_PIPELINE=1 ./run.sh` (use the committed data JSON, just launch the dashboard).
+
+<details>
+<summary>Or run each stage by hand</summary>
+
 ```bash
 pip install -r requirements.txt
 
@@ -97,6 +111,8 @@ python -m pytest tests/ -q                           # 50 passed
 # Dashboard
 cd modules/dashboard/frontend && npm install && npm run dev   # http://localhost:5173/app
 ```
+
+</details>
 
 The dashboard reads **static JSON** exported from the pipeline — no live model or LLM call in the demo
 path, so it runs fully offline. The LLM triage (`gpt-4o-mini`) is pre-generated and cached; the
