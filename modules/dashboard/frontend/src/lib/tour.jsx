@@ -8,11 +8,10 @@ import { buildTourSteps } from "./tourSteps";
 
 /**
  * Guided judge walkthrough — a driver.js spotlight tour that auto-navigates
- * across pages. Auto-starts ONCE per browser (remembered in localStorage),
- * then is re-launchable on demand via the topbar Help button (`useTour().start`).
+ * across pages. Auto-starts on every page landing, re-launchable on demand
+ * via the topbar Help button (`useTour().start`).
  */
 const TourCtx = createContext(null);
-const SEEN_KEY = "ti-tour-seen";
 
 // Resolve when the selector exists in the DOM, or after `timeout` (resolves null
 // so a missing anchor degrades gracefully instead of hanging the tour).
@@ -57,7 +56,12 @@ export function TourProvider({ children }) {
       if (!step) return;
       const current = window.location.pathname + window.location.search;
       if (step.route && step.route !== current) navigate(step.route);
-      await waitForElement(step.element);
+      const el = await waitForElement(step.element);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Let the smooth scroll settle before driver.js positions the overlay.
+        await new Promise((r) => setTimeout(r, 400));
+      }
     };
 
     const d = driver({
@@ -84,11 +88,6 @@ export function TourProvider({ children }) {
         d.movePrevious();
       },
       onDestroyed: () => {
-        try {
-          localStorage.setItem(SEEN_KEY, "1");
-        } catch {
-          /* ignore storage failures (private mode etc.) */
-        }
         // Leave the app on a clean route — strip the tour's ?incident deep-link.
         if (window.location.pathname === "/app/findings" && window.location.search) {
           navigate("/app/findings", { replace: true });
@@ -102,16 +101,10 @@ export function TourProvider({ children }) {
     d.drive();
   }, [navigate, pickIncidentId]);
 
-  // Auto-start once, after data has loaded, only on a first-time visitor.
+  // Auto-start on every page landing, after data has loaded.
   useEffect(() => {
     if (autoStartedRef.current || !data) return;
-    let seen = false;
-    try {
-      seen = localStorage.getItem(SEEN_KEY) === "1";
-    } catch {
-      /* ignore */
-    }
-    if (seen || !window.location.pathname.startsWith("/app")) return;
+    if (!window.location.pathname.startsWith("/app")) return;
     const t = setTimeout(() => {
       autoStartedRef.current = true;
       start();

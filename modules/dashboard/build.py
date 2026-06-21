@@ -490,7 +490,7 @@ def build_replay(d, incidents):
     # sparse chain; the densest burst visually fills the timeline).
     crit = scored[scored["risk_band"] == "CRITICAL"]
     demo = crit.loc[crit["event_count"].idxmax()]
-    pad = timedelta(minutes=30)
+    pad = timedelta(hours=3, minutes=30)
     dw_start = pd.Timestamp(demo["start_time"]).tz_convert("UTC") - pad
     dw_end = pd.Timestamp(demo["end_time"]).tz_convert("UTC") + pad
     demo_window = {

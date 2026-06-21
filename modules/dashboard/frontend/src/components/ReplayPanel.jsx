@@ -8,7 +8,7 @@ import { Badge } from "./ui";
 import { CHART, SOURCE_COLOR, axisProps, ChartTooltip } from "./charts";
 import { cn, fmtTime } from "../lib/utils";
 
-const SPEEDS = [0.5, 1, 2];
+const SPEEDS = [0.5, 1, 2, 4];
 
 function hhmm(iso) {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" });

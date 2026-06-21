@@ -27,7 +27,7 @@ export default class ReplayEngine {
     this.demoEnd = Date.parse(dw.t_end);
 
     this.range = "demo";
-    this.speed = 1;
+    this.speed = 4;
     this.playing = false;
     this.clock = this.demoStart;
     this._timer = null;
