@@ -12,3 +12,5 @@ venv/
 !data/processed/.gitkeep
 
 modules/dashboard/figures
+
+nul
