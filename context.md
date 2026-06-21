@@ -541,6 +541,34 @@ clean. To get a green suite, `pip install pyod`. **Remaining manual:** in-browse
 calibration panel + forensic block in **both themes**; create the Vercel project and paste the live URL
 into README + the demo-link placeholders.
 
+### 2026-06-21 — Interactive judge walkthrough (guided tour) added to the dashboard
+
+Added a short spotlight-style guided tour for hackathon judges, built on **driver.js 1.4.0** (new
+dep in `modules/dashboard/frontend`). It auto-starts **once per browser** (remembered via
+`localStorage["ti-tour-seen"]`), then is re-launchable on demand from the topbar Help (`?`) button —
+previously a dead button (`AppShell.jsx` Topbar). Five short steps (~90s), auto-navigating across
+pages: welcome/thesis (centered) → Dashboard **live replay** → Risk Findings **incident drawer**
+(opened via the existing `?incident=<top CRITICAL id>` deep-link) → Analytics **alert-fatigue funnel**
+→ Analytics **calibration**. The covered points map 1:1 to the four differentiators + headline numbers
+(89% alert reduction, 96% precision@50).
+
+New files: `src/lib/tourSteps.js` (step config; takes the incident id so the deep-link isn't
+hardcoded), `src/lib/tour.jsx` (`TourProvider` + `useTour()`; owns the driver instance, an async
+`goToStep` that navigates then `waitForElement` polls for the anchor with a 3s graceful timeout, and
+auto-start-once logic), `src/styles/tour.css` (popover themed via the app's HSL CSS vars, works in
+light + dark). Wiring: `TourProvider` mounted inside `<BrowserRouter>` in `App.jsx` (needs
+`useNavigate`/`useData`); Help button calls `startTour()`; `data-tour` anchors added on the
+ReplayPanel root, the RiskFindings drawer panel, and (via a new optional `anchor` prop on the local
+`Panel`) the Analytics funnel + calibration cards. Cross-page nav handled in driver's
+`onNextClick`/`onPrevClick` hooks; `onDestroyed` sets the seen flag and strips the `?incident`
+deep-link so the app is left clean.
+
+**Verified:** `npm install driver.js` clean (0 vuln); `npm run build` green (2355 modules); dev server
+boots and serves `/app` 200. Driver hook API (`opts.state.activeIndex`, `moveNext/movePrevious`)
+confirmed against `driver.js.d.ts`. **Remaining manual (browser-only):** click-through QA of the
+5 steps in both themes, confirm auto-start fires on a cleared `localStorage` and not on reload, and
+that the Help button replays it.
+
 ## 4. Naming history (so nobody resurrects an old path)
 
 ```

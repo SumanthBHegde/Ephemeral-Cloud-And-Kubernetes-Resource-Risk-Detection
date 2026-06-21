@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./lib/theme";
 import { DataProvider } from "./lib/data";
+import { TourProvider } from "./lib/tour";
 import AppShell from "./components/layout/AppShell";
 
 import Dashboard from "./pages/Dashboard";
@@ -17,20 +18,22 @@ export default function App() {
     <ThemeProvider>
       <DataProvider>
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/app" replace />} />
-            <Route path="/app" element={<AppShell />}>
-              <Route index element={<Dashboard />} />
-              <Route path="findings" element={<RiskFindings />} />
-              <Route path="resources" element={<ResourceExplorer />} />
-              <Route path="analytics" element={<Analytics />} />
-              <Route path="chat" element={<Chat />} />
-              <Route path="reports" element={<Reports />} />
-              <Route path="notifications" element={<Notifications />} />
-              <Route path="settings" element={<Settings />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/app" replace />} />
-          </Routes>
+          <TourProvider>
+            <Routes>
+              <Route path="/" element={<Navigate to="/app" replace />} />
+              <Route path="/app" element={<AppShell />}>
+                <Route index element={<Dashboard />} />
+                <Route path="findings" element={<RiskFindings />} />
+                <Route path="resources" element={<ResourceExplorer />} />
+                <Route path="analytics" element={<Analytics />} />
+                <Route path="chat" element={<Chat />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="notifications" element={<Notifications />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/app" replace />} />
+            </Routes>
+          </TourProvider>
         </BrowserRouter>
       </DataProvider>
     </ThemeProvider>

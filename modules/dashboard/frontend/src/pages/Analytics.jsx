@@ -17,9 +17,9 @@ export default function Analytics() {
   );
 }
 
-function Panel({ title, description, children, className }) {
+function Panel({ title, description, children, className, anchor }) {
   return (
-    <Card className={"p-5 " + (className || "")}>
+    <Card data-tour={anchor} className={"p-5 " + (className || "")}>
       <div className="mb-4">
         <h3 className="font-semibold leading-tight tracking-tight">{title}</h3>
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
@@ -113,7 +113,7 @@ function AnalyticsBody({ metrics }) {
           </ResponsiveContainer>
         </Panel>
 
-        <Panel title="Alert-Fatigue Funnel" description="Raw events → flagged → suppressed → correlated → triaged.">
+        <Panel anchor="funnel" title="Alert-Fatigue Funnel" description="Raw events → flagged → suppressed → correlated → triaged.">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={funnel} layout="vertical" margin={{ top: 4, right: 24, left: 40, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} horizontal={false} />
@@ -126,7 +126,7 @@ function AnalyticsBody({ metrics }) {
         </Panel>
 
         {calibration.length > 0 && (
-          <Panel title="Risk Calibration" description="Predicted risk vs observed malicious rate — a 0.8 score means ~80% malicious.">
+          <Panel anchor="calibration" title="Risk Calibration" description="Predicted risk vs observed malicious rate — a 0.8 score means ~80% malicious.">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={calibration} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} />

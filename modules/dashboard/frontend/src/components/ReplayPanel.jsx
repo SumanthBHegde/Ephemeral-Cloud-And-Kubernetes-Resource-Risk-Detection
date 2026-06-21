@@ -62,7 +62,7 @@ export default function ReplayPanel({ replay }) {
   const critFormed = formed.filter((i) => i.risk_band === "CRITICAL").length;
 
   return (
-    <div className="rounded-card border border-border bg-card shadow-sm">
+    <div data-tour="replay" className="rounded-card border border-border bg-card shadow-sm">
       <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-btn bg-primary/10 text-primary">

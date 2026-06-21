@@ -8,6 +8,7 @@ import {
 import { cn } from "../../lib/utils";
 import { useTheme } from "../../lib/theme";
 import { useData } from "../../lib/data";
+import { useTour } from "../../lib/tour";
 import { Avatar, Badge, Dropdown, DropdownItem, Separator } from "../ui";
 import CommandPalette from "./CommandPalette";
 
@@ -116,6 +117,7 @@ function Topbar({ setMobileOpen, onOpenPalette }) {
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const { data } = useData();
+  const { start: startTour } = useTour();
   const notifications = data?.notifications || [];
   const unread = notifications.filter((n) => !n.read).length;
   return (
@@ -166,7 +168,11 @@ function Topbar({ setMobileOpen, onOpenPalette }) {
           <DropdownItem className="justify-center text-primary" onClick={() => navigate("/app/notifications")}>View all</DropdownItem>
         </Dropdown>
 
-        <button className="flex h-9 w-9 items-center justify-center rounded-btn text-muted-foreground hover:bg-muted" title="Help">
+        <button
+          onClick={() => startTour()}
+          className="flex h-9 w-9 items-center justify-center rounded-btn text-muted-foreground hover:bg-muted"
+          title="Guided tour"
+        >
           <CircleHelp className="h-[18px] w-[18px]" />
         </button>
 

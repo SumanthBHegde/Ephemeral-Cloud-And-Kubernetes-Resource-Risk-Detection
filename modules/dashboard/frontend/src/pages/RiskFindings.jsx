@@ -165,7 +165,7 @@ function FindingDrawer({ inc, onClose }) {
   return (
     <div className="fixed inset-0 z-[100] flex justify-end">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={onClose} />
-      <div className="relative z-10 flex h-full w-full max-w-lg flex-col border-l border-border bg-card shadow-lg animate-slide-in">
+      <div data-tour="incident-drawer" className="relative z-10 flex h-full w-full max-w-lg flex-col border-l border-border bg-card shadow-lg animate-slide-in">
         {/* header */}
         <div className="flex items-start justify-between border-b border-border p-5">
           <div>
