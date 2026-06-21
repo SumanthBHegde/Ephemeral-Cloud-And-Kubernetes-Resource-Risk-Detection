@@ -15,20 +15,26 @@ import CommandPalette from "./CommandPalette";
 function buildNav(metrics, unread) {
   const crit = metrics?.kpis?.find((k) => k.id === "critical")?.value;
   return [
-    { section: "Overview", items: [
-      { to: "/app", label: "Dashboard", icon: LayoutDashboard, end: true },
-      { to: "/app/findings", label: "Risk Findings", icon: ShieldAlert, badge: crit ? String(crit) : null },
-      { to: "/app/resources", label: "Resource Explorer", icon: Boxes },
-      { to: "/app/analytics", label: "Analytics", icon: BarChart3 },
-    ]},
-    { section: "Intelligence", items: [
-      { to: "/app/chat", label: "AI Risk Analyst", icon: Bot, pill: "AI" },
-      { to: "/app/reports", label: "Reports", icon: FileText },
-    ]},
-    { section: "Workspace", items: [
-      { to: "/app/notifications", label: "Notifications", icon: Bell, badge: unread ? String(unread) : null },
-      { to: "/app/settings", label: "Settings", icon: Settings },
-    ]},
+    {
+      section: "Overview", items: [
+        { to: "/app", label: "Dashboard", icon: LayoutDashboard, end: true },
+        { to: "/app/findings", label: "Risk Findings", icon: ShieldAlert, badge: crit ? String(crit) : null },
+        { to: "/app/resources", label: "Resource Explorer", icon: Boxes },
+        { to: "/app/analytics", label: "Analytics", icon: BarChart3 },
+      ]
+    },
+    {
+      section: "Intelligence", items: [
+        { to: "/app/chat", label: "AI Risk Analyst", icon: Bot, pill: "AI" },
+        { to: "/app/reports", label: "Reports", icon: FileText },
+      ]
+    },
+    {
+      section: "Workspace", items: [
+        { to: "/app/notifications", label: "Notifications", icon: Bell, badge: unread ? String(unread) : null },
+        { to: "/app/settings", label: "Settings", icon: Settings },
+      ]
+    },
   ];
 }
 
@@ -131,7 +137,7 @@ function Topbar({ setMobileOpen, onOpenPalette }) {
         className="group flex h-9 w-full max-w-md items-center gap-2 rounded-btn border border-border bg-surface px-3 text-sm text-muted-foreground transition-colors hover:border-ring"
       >
         <Search className="h-4 w-4" />
-        <span className="flex-1 text-left">Search findings, resources, namespaces…</span>
+        <span className="flex-1 text-left">Search</span>
         <kbd className="hidden items-center gap-0.5 rounded border border-border bg-card px-1.5 py-0.5 text-[10px] font-medium sm:flex">
           <Command className="h-3 w-3" />K
         </kbd>
