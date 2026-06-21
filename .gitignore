@@ -14,3 +14,9 @@ venv/
 modules/dashboard/figures
 
 nul
+
+docs/demo_script.md
+docs/edge_cases.md
+docs/slides.md
+docs/build_docx.py
+docs/build_pptx.py
