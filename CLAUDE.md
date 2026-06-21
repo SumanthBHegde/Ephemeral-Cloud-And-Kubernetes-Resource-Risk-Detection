@@ -14,10 +14,10 @@ context.md is worse than no context.md because the next session will trust it.
 ## Repository status
 
 This repo is building a near-real-time detection pipeline for ephemeral cloud/Kubernetes risk, as a
-hackathon submission. **Stages Zero–Four are complete and verified** (see context.md for the full
+hackathon submission. **All stages (Zero–Six) are complete and verified** (see context.md for the full
 chronology and metrics) — Stage Zero (data_simulation), Stage One (ingest_enrich), Stage Two
-(detection), Stage Three (correlation), Stage Four (risk_fusion). Stages 5–6 (LLM triage, dashboard)
-have empty scaffolds and are next.
+(detection), Stage Three (correlation), Stage Four (risk_fusion), Stage Five (llm_triage), Stage Six
+(dashboard — a React/Vite/Tailwind SOC console fed by static JSON exported from the pipeline).
 
 ## Repository layout
 
@@ -33,9 +33,10 @@ modules/
   detection/                      DONE — two-stage detector (recall-first + suppression)
   correlation/                    DONE — graph incident clustering
   risk_fusion/                    DONE — fused score + isotonic calibration + incident ranking
-  llm_triage/                     next — structured triage narratives
-  dashboard/                      future — forensic/alert UI
-tests/                           pytest suite (40 tests: 6 stage0 + 9 stage1 + 8 stage2 + 8 stage3 + 9 stage4)
+  llm_triage/                     DONE — structured triage narratives (gpt-4o-mini, cached)
+  dashboard/                      DONE — React/Vite/Tailwind SOC console + build.py JSON export
+    frontend/                     React app (npm); public/data/ holds the exported JSON
+tests/                           pytest suite (50 tests: 6 stage0 + 9 stage1 + 8 stage2 + 8 stage3 + 9 stage4 + 10 stage5)
 ```
 
 ## Common development tasks
@@ -50,10 +51,14 @@ python modules/data_simulation/validate.py           # 16-check dataset gate (ex
 python -m modules.ingest_enrich.build               # normalize → data/processed/events_enriched.parquet
 
 # Run tests
-python -m pytest tests/ -q                          # full suite (15 passed)
+python -m pytest tests/ -q                          # full suite (50 passed)
 python -m pytest tests/test_stage0.py -q            # stage zero only
 python -m pytest tests/test_stage1.py -q            # stage one only
 python -m pytest tests/test_stage1.py::test_confusability_preserved -q  # single test
+
+# Stage 6 dashboard (React console fed by static JSON)
+python -m modules.dashboard.build                   # export data/processed/*.parquet -> frontend/public/data/*.json
+cd modules/dashboard/frontend && npm install && npm run dev   # console at http://localhost:5173/app
 
 # Live inspection
 python modules/data_simulation/replay/stream.py --instant --limit 5   # raw replay (first 5 events)
@@ -211,9 +216,10 @@ Claude-as-few-shot-scorer is a documented last-resort fallback only. Full ration
 
 `simulator → features + cohorts → two-stage detector → graph + fusion → LLM triage → dashboard + eval`
 
-Status: Stages 0–4 done (simulator → enrich → detection → correlation → risk_fusion). **Stage 5
-(`modules/llm_triage/`) is next** — consume `data/processed/incidents_scored.parquet` (ranked incidents)
-and emit validated structured triage JSON per incident (design doc §10). Stage 6 (dashboard) follows.
+Status: **all stages done** (simulator → enrich → detection → correlation → risk_fusion → llm_triage →
+dashboard). Stage 6 (`modules/dashboard/`) is a React/Vite/Tailwind SOC console fed by static JSON that
+`python -m modules.dashboard.build` exports from `data/processed/*.parquet`; it reads cached artifacts
+only (no live model/LLM in the demo path). Remaining work is polish/eval, not new stages.
 
 Backend-first is deliberate, not just convenient: ship a working, demoable V1 (normalized event store,
 rule tripwires, statistical baselines, API) before any ML code. The rule/statistical pre-filter then

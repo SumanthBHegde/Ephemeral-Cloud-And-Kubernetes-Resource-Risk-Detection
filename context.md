@@ -30,13 +30,13 @@ Full design rationale lives in [docs/ephemeral_risk_detection_analysis.md](docs/
 | `modules/correlation/` | **DONE, verified** — entity graph + connected-component incidents, alert reduction 89%, 8/8 tests green |
 | `modules/risk_fusion/` | **DONE, verified** — fused raw score + OOF isotonic calibration + incident aggregation, precision@50 96%, 9/9 tests green |
 | `modules/llm_triage/` | **DONE, verified** — OpenAI gpt-4o-mini structured-output triage + existence-based cache (cost guard) + label-free templated fallback, 263 CRITICAL+HIGH incidents triaged live (100%), 10/10 tests green |
-| `modules/dashboard/` | not started — empty scaffold |
+| `modules/dashboard/` | **DONE, verified** — React 19 + Vite + Tailwind SOC console (ThreatLens design language) over static JSON exported from the pipeline; real-time replay simulation; `npm run build` green (2350 modules) |
 
-**Next concrete step:** build `modules/dashboard/` (Stage 6) — the forensic/alert UI (Streamlit or
-Plotly Dash, design doc §11). Consume `data/processed/incidents_triaged.parquet` (Stage 5 triage
-JSON) + `incidents_scored.parquet` (ranked queue) + `events_scored.parquet`, and render the
-analyst-facing alert-fatigue curve (raw → suppressed → correlated → triaged), the ranked incident
-queue, and per-incident triage cards (intent, MITRE, evidence, disambiguation, guardrails).
+**Next concrete step:** the pipeline (Stages 0–6) is complete. Remaining work is polish/eval, not new
+stages: optionally run the live OpenAI triage (`python -m modules.llm_triage.build` with a key) to
+refresh narratives, and walk the dashboard QA checklist (design handoff §8) in both themes. To run the
+dashboard: `python -m modules.dashboard.build` (export JSON) then `cd modules/dashboard/frontend &&
+npm install && npm run dev`.
 
 ## 3. Chronological history
 
@@ -439,6 +439,53 @@ offers strict hash-checked reuse) so staleness stays detectable. New test
 `test_existence_based_reuse_and_force_refresh` (Stage 5 now **10/10**, full suite **50/50**). Verified:
 a live `build` over the 263 existing cache files makes **zero API calls** (`provenance: cache=263`).
 
+### 2026-06-21 — Stage 6 (`modules/dashboard/`) built and verified
+Built the final stage: an enterprise SOC-style web console that visualizes the *real* pipeline outputs.
+Departs from CLAUDE.md's original "Streamlit/Dash" suggestion — the user supplied a polished React
+design language ("ThreatLens", `docs/frontend_design_guidlines.md`) exported from a reference app at
+`D:\projects\threat-intel`, so the dashboard is **React 19 + Vite + Tailwind v3** instead.
+
+Architecture (decided via plan-mode Q&A + four review passes): **static-JSON export, not a live
+backend.** `python -m modules.dashboard.build` reads `data/processed/*.parquet` and writes JSON into
+`modules/dashboard/frontend/public/data/`; the frontend fetches it once on mount (`lib/data.jsx`
+`DataProvider`/`useData`). This keeps the demo fully offline (matches the project's "demo never depends
+on a network call" principle) and the JS bundle small. The threat-intel project was copied in and
+rebranded (product → **EphemeraLens**; threats→findings, IOCs→resources/events, threat-actors→
+namespaces/cohorts); theme tokens, UI primitives (`ui/index.jsx`), and `shared.jsx` were reused
+verbatim. Login/MFA/Landing/Admin pages were dropped (user: no auth); `/` redirects to `/app`.
+
+Exported artifacts (`build.py`): `incidents.json` (529, `incidents_scored` ⟕ `incidents_triaged`, each
+with top-8 member events by `p_event`), `events.json` (9,857 enriched + `p_event` + incident), `metrics.json`
+(KPIs, **alert-fatigue funnel** 9857→3517→3167→529→263, severity/cohort/source/MITRE aggregates, riskiest
+namespaces/cohorts/principals), `reports.json` (top-20 triaged as documents), `notifications.json`,
+`replay.json` (time-ordered events + 15-min `timeline_bins` + per-incident `formation_time`/
+`traditional_detect_time`/`detection_lag_hours` + a `demo_window`).
+
+Pages (`src/pages/`): Dashboard (KPIs + replay hero + alert-fatigue funnel + trend/donut + latest
+findings + riskiest namespaces/cohorts), Risk Findings (grid/list + filter bar + **triage detail drawer**:
+intent, confidence bar, MITRE, evidence, disambiguation, guardrails, participants, top member events,
+"Ask AI Analyst" → `/app/chat?incident=`), Resource Explorer (sortable/paginated 9,857-event table),
+Analytics (6 recharts panels), AI Risk Analyst (canned, triage-driven, reads `?incident=`), Reports,
+Notifications, Settings (theme toggle).
+
+**Headline feature — real-time replay simulation** (`lib/ReplayEngine.jsx` + `components/ReplayPanel.jsx`):
+a plain JS class drives a virtual clock with play/pause/seek/speed/range and `onTick` subscribers
+(emitting `clockTime`/`binIndex`/`eventsSeen`/`formedIncidents`/`newIncidents`). Critical design fix
+from review: "1×" is anchored to a `TARGET_DURATION_S=120` real-second budget (NOT real-time, which
+would make the window take hours); slider is 0.5×/1×/2×. The chart is fed by 15-min `timeline_bins`
+(revealed bin-by-bin) to avoid per-event recharts re-render jank. The demo incident is chosen as the
+**densest CRITICAL** (`max(event_count)` → INC-0230, 46 events), not rank-1 (which can be a sparse
+chain). A before/after annotation contrasts pipeline detection time vs. the next daily scan
+("Traditional scan misses this for 17.9h").
+
+**Verified this session:** `python -m modules.dashboard.build` → incidents 529 (263 triaged), events
+9,857, funnel [9857,3517,3167,529,263], replay 9857 events / 481 bins / 263 incidents, demo_window
+INC-0230; all six JSON files parse; spot-checked `formation_time == max member event_time` and
+`traditional_detect_time ≥ formation_time`. `npm install` clean (0 vulnerabilities); `npm run build`
+green (2350 modules, only a >500 kB chunk advisory from recharts); `npm run dev` serves `/app` (200)
+and `/data/metrics.json` (200). Visual QA in-browser (handoff §8, both themes) is the remaining manual
+check.
+
 ## 4. Naming history (so nobody resurrects an old path)
 
 ```
@@ -485,8 +532,10 @@ python -m modules.risk_fusion.build                     # -> data/processed/inci
 python -m modules.risk_fusion.evaluate                  # precision/recall@K + recovery + calibration table + ablation
 python -m modules.llm_triage.build --no-llm             # -> data/processed/incidents_triaged.parquet (+ triage_cache/, offline)
 python -m modules.llm_triage.evaluate                   # coverage + provenance + canonical spot-check + ablation
+python -m modules.dashboard.build                       # -> modules/dashboard/frontend/public/data/*.json (Stage 6 export)
 python -m pytest tests/ -q                              # expect: 50 passed (6 stage0 + 9 stage1 + 8 stage2 + 8 stage3 + 9 stage4 + 10 stage5)
 python modules/data_simulation/replay/stream.py --instant --limit 5   # sanity-check live replay
+cd modules/dashboard/frontend && npm install && npm run dev           # Stage 6 console at http://localhost:5173/app
 ```
 Last confirmed: Stage 0 → 9,857 events (4,000/4,357/1,500 per source), 1,710 risky (17.3%), all four
 canonical incidents present (`INC-A=40, INC-B=3, INC-C=7, INC-D=2`), 16/16 validator green. Stage 1 →
@@ -504,15 +553,13 @@ canonical incidents triaged, MITRE coverage 100%. Full suite 50/50 green.
 
 1. Read this file, then `docs/ephemeral_risk_detection_analysis.md` for the design rationale behind
    whatever you're about to touch.
-2. If picking up `modules/dashboard/` (Stage 6, the next module): load
-   `data/processed/incidents_triaged.parquet` (Stage 5 triage cards — `incident_id`, `risk_rank`,
-   `risk_band`, `risk_score`, `likely_intent`, `confidence`, `mitre`, `key_evidence`, `disambiguation`,
-   `recommended_guardrails`, `triage_source`) + `incidents_scored.parquet` (ranked queue + evidence
-   cols) + `events_scored.parquet`. Build the forensic/alert UI (Streamlit or Plotly Dash, design doc
-   §11): the **alert-fatigue curve** (raw flags → suppressed → correlated → triaged, the numbers are
-   in the ablation tables), the ranked incident queue, and per-incident triage cards. Per design doc
-   §13 also surface time-to-detection vs resource lifetime. The dashboard reads cached artifacts only —
-   no live model/LLM calls in the demo path.
+2. `modules/dashboard/` (Stage 6) is **built** — a React 19 + Vite + Tailwind console under
+   `modules/dashboard/frontend/`, fed by static JSON from `python -m modules.dashboard.build`. To run
+   it: regenerate the JSON with `build.py` after any pipeline rerun, then `cd modules/dashboard/frontend
+   && npm install && npm run dev`. The replay engine, alert-fatigue funnel, ranked queue, triage drawer,
+   and analytics all read the exported JSON only — no live model/LLM calls. Remaining: in-browser visual
+   QA (handoff §8, light + dark) and any design polish. If editing the export schema, keep the frontend
+   `lib/data.jsx` / page field names in sync.
 3. If running the **live** LLM triage (not needed for the dashboard, which reads the cached parquet):
    `cp .env.example .env`, set `OPENAI_API_KEY`, `pip install -r requirements.txt`, then
    `python -m modules.llm_triage.build` (gpt-4o-mini, caches per-incident JSON). The `--no-llm` path

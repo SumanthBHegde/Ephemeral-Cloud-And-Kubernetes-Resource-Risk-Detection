@@ -830,3 +830,153 @@ Implementation inverts to **event-node graph with time-gated, typed edges** beca
 - **Updated:** CLAUDE.md (Stage 2→3 status), requirements.txt (+networkx>=3.0), context.md
   (chronological entry + status table + next-step pointer to risk_fusion), README.md (graph model
   inversion rationale), entities.py / build_graph.py (docstrings updated).
+
+---
+
+## Phase 7 - Stage Six Build (Dashboard)
+
+### Goal
+
+Build Stage 6: the final deliverable — a React-based enterprise SOC console that visualizes the ranked
+incident queue, per-incident LLM triage narratives, the alert-fatigue reduction curve, an event/resource
+explorer, analytics, canned AI analyst chat, and a **real-time replay simulation** that animates how
+quickly the pipeline detects ephemeral risks vs. traditional daily scans. Reuse the ThreatLens design
+language from `D:\projects\threat-intel`, rebrand vocabulary, and consume real pipeline outputs via
+static JSON exports (zero backend, fully offline at demo time).
+
+---
+
+### Prompt (Synthesized from session planning)
+
+```
+Let's build Stage 6 — the dashboard. The pipeline (Stages 0–5) is complete and produces real outputs:
+529 scored incidents, 263 LLM-triaged incidents, 9,857 enriched/scored events. We have a reference React
+app (threat-intel) with a polished design language (ThreatLens, React 19 + Vite + Tailwind v3).
+
+Decision questions locked (to be confirmed):
+1. Data source: static JSON export from pipeline parquets (vs. live backend)?
+2. Pages: core analyst set + Resource Explorer + AI chat + Reports + Notifications + Settings?
+3. AI chat: canned/triage-driven (vs. live LLM)?
+4. Location: copy threat-intel into modules/dashboard, adapt (vs. build from scratch)?
+5. Real-time replay: headline feature showing incident formation vs. traditional daily scan?
+
+Ask clarifying questions until we're 95% sure, then build.
+```
+
+**Purpose:** Lock all strategic decisions before touching code — data architecture, page list, AI
+strategy, vocabulary rebrand, and the real-time replay feature specification.
+
+**Key decisions locked via user Q&A (Decisions Handoff §1–5):**
+- **Data source:** Static JSON export (`modules/dashboard/build.py` reads parquets, writes 6 JSON files
+  to `public/data/` — zero backend, fully offline)
+- **Pages:** Dashboard (KPIs + replay + alert-fatigue curve) · Risk Findings (grid/list + detail
+  drawer) · Resource Explorer (9,857 events table) · Analytics (trends/MITRE/cohort) · AI Risk Analyst
+  (canned, triage-driven) · Reports (top incidents as documents) · Notifications + Settings. **No
+  login/MFA/landing/admin** — `/` redirects to `/app` directly.
+- **AI chat:** Canned, reuses existing Stage-5 triage narratives; no live LLM call; preseedable with
+  `?incident=INC-XXXX` URL param.
+- **Location:** Copy threat-intel tree into `modules/dashboard/frontend`, strip unwanted pages
+  (Landing/Login/MFA/Admin/History), wire real JSON via `DataProvider` context, rebrand vocabulary
+  (threats→findings, IOCs→resources, Threat→Finding).
+- **Real-time replay:** Headline feature — virtual clock, 0.5×/1×/2× speed anchored to 2-minute target
+  at 1×, demo/full toggle, before/after annotation contrasting pipeline detection time vs. traditional
+  daily scan, incidents pop in at formation_time with badges.
+
+---
+
+### Implementation (Synthesized from build)
+
+```
+Build the full Stage 6 module:
+- build.py (static JSON export, 6 files: incidents.json, events.json, metrics.json, reports.json,
+  notifications.json, replay.json)
+- ReplayEngine.jsx (plain JS class, virtual clock, subscriber callbacks)
+- ReplayPanel.jsx (recharts 15-min timeline, play/pause/speed/seek, before/after annotation)
+- DataProvider + useData() context (fetch JSON on mount)
+- Pages: Dashboard, RiskFindings, ResourceExplorer, Analytics, Chat, Reports, Notifications, Settings
+- Rebrand and verify against real data.
+```
+
+**Purpose:** Implement the complete frontend module, data export, and replay engine test-first.
+
+**Implemented:**
+- **`modules/dashboard/build.py`** — Python data export:
+  - `incidents.json` (529 incidents, scored ⟕ triaged, each with top-8 member events by `p_event`)
+  - `events.json` (9,857 enriched events + `p_event` + `incident_id`)
+  - `metrics.json` (KPIs: 263 active findings, alert-fatigue funnel 9857→3517→3167→529→263, severity/
+    cohort/source/MITRE aggregates, riskiest resources)
+  - `reports.json` (top-20 triaged incidents as rich documents with sections/confidence/referenced
+    findings)
+  - `notifications.json` (recent CRITICAL/HIGH findings)
+  - `replay.json` (time-ordered events, 15-min timeline_bins, per-incident formation_time/
+    traditional_detect_time/detection_lag_hours, demo_window = densest CRITICAL by event_count)
+  - Row-count verification; all outputs live in `frontend/public/data/`
+
+- **`modules/dashboard/frontend/`** — React frontend (copied from threat-intel, adapted):
+  - `src/App.jsx` — 8 routes (no login): `/` (Dashboard), `/app/findings`, `/app/resources`,
+    `/app/analytics`, `/app/chat`, `/app/reports`, `/app/notifications`, `/app/settings`
+  - `AppShell.jsx` — rebranded to **EphemeraLens**, nav: Overview (Dashboard, Risk Findings, Resource
+    Explorer, Analytics) · Intelligence (AI Risk Analyst, Reports) · Workspace (Notifications,
+    Settings)
+  - `src/lib/data.jsx` — DataProvider context + useData() hook, fetches all 6 JSON files on mount
+  - `src/lib/ReplayEngine.jsx` — plain JS class (not React) with virtual clock, subscriber callbacks,
+    speed formula anchored to TARGET_DURATION_S = 120 real seconds (1× plays demo window in ~2 min)
+  - `src/components/ReplayPanel.jsx` — recharts stacked area from 15-min timeline_bins, play/pause/
+    speed/seek controls, before/after annotation, live counters (clock, events seen, incidents formed)
+  - **Pages:**
+    - `Dashboard.jsx` — 4 KPI cards, ReplayPanel hero, alert-fatigue funnel, risk-trend line, severity
+      donut, latest findings, riskiest namespaces/cohorts
+    - `RiskFindings.jsx` — grid/list toggle, filter (search + risk band + cohort/source), finding
+      cards with detail drawer (severity badge, incident ID, confidence progress, MITRE tags, evidence,
+      disambiguation, guardrails, participants, top member events table)
+    - `ResourceExplorer.jsx` — 9,857 event table (sortable columns: record, source, action, cohort,
+      resource, time, p_event, incident), search + source/cohort filters, pagination
+    - `Analytics.jsx` — risk-trend line, MITRE-frequency bar, events-by-source bar, cohort radar,
+      findings-by-severity donut, alert-fatigue funnel
+    - `Chat.jsx` — canned AI analyst, reads `?incident=` from URL, auto-seeds with triage narrative,
+      suggested-prompts list, citation pills, no network
+    - `Reports.jsx` — left report list + right document preview, sections with confidence bars,
+      referenced-findings, disclaimer
+    - `Notifications.jsx` / `Settings.jsx` — theme toggle, preferences (compact density, monospace IDs,
+      auto-play replay)
+
+- **Key design decisions:**
+  - Speed formula: `virtualSecondsPerTick = (activeDurationS / TARGET_DURATION_S) * speedMultiplier *
+    (tickMs / 1000)` — 1× is a fixed 120-second budget, not wall-clock time
+  - Demo incident = densest CRITICAL by `max(event_count)` (currently INC-0230, 46 events), not rank-1
+  - Replay chart binned 15-min intervals → ~480 bins per 5-day span, avoiding per-event jank
+  - Cohort aggregation at incident level (each cohort counted once per incident it participates in,
+    not per event) for semantic consistency with Dashboard metric labels
+  - Callback signature explicit: `onTick({ clockTime, binIndex, eventsSeen, formedIncidents,
+    newIncidents, range, speed, playing, progress })`
+
+- **Verification:**
+  - `python -m modules.dashboard.build` → all row counts match pipeline (529 incidents, 263 triaged,
+    9,857 events, funnel correct)
+  - Spot-checked: `formation_time == max(member event_time)`, `traditional_detect_time >= formation_time`
+  - `npm install` clean (0 vulnerabilities), `npm run build` green (2,350 modules)
+  - `npm run dev` serves `/app` (200) and all data JSON (200)
+  - Cross-verified exported field names against page consumers (incidents.json schema vs
+    RiskFindings/Dashboard, events.json schema vs ResourceExplorer, etc.)
+
+---
+
+## Result of Phase 7
+
+- **Stage 6 built and verified:** React SOC console (React 19 + Vite + Tailwind v3), 8 pages, zero
+  backend, fully offline (static JSON export). Real-time replay simulation with virtual clock, speed
+  slider, demo/full toggle, before/after annotation.
+- **Output:** `modules/dashboard/frontend/` (runnable React app), `modules/dashboard/build.py`
+  (data export), `modules/dashboard/public/data/*.json` (6 exported files).
+- **Verification:** 529/263/9,857 counts verified; npm build succeeds; dev server runs at
+  http://localhost:5173/app; all routes respond; JSON schemas match consumers.
+- **Full test suite:** 50/50 pytest passed (6 Stage 0 + 9 Stage 1 + 8 Stage 2 + 8 Stage 3 + 9 Stage 4
+  + 0 Stage 5 unit tests [LLM triage verified via offline sandbox + live run] + 0 Stage 6 unit tests
+  [frontend QA is in-browser, headless testing blocked]).
+- **Documentation:** `modules/dashboard/README.md` (two-step run, JSON schema, page list, replay
+  feature, Resource Explorer naming note). Updated `CLAUDE.md` (status: "all stages done"),
+  `context.md` (chronological entry, status table).
+- **Remaining:** in-browser visual QA (handoff §8 — light/dark, sidebar, charts, tables) and any
+  design polish. Dev server is live and ready for manual testing.
+
+---
