@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the principal is novel and the actions are atypical for the expected behavior of a legitimate user. The timing and nature of the actions suggest potential malicious intent rather than routine scaling or CI operations.",
+  "evidence_hash": "a0120a2c",
+  "incident_id": "INC-0209",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-62cd@partner.example) within a short time frame.",
+    "The actions include 'AssumeRoleWithWebIdentity' and 'user.authentication.auth_via_IDP', indicating potential credential misuse.",
+    "The event occurred during off-hours, which raises suspicion about the legitimacy of the access."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using a novel principal.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on the use of 'AssumeRoleWithWebIdentity' and similar actions by novel principals.",
+    "Establish a baseline of normal user behavior to identify anomalies."
+  ],
+  "triage_source": "llm"
+}

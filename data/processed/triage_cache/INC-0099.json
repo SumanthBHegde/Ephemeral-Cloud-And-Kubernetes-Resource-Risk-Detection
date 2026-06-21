@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the event count is significantly higher than typical autoscaling behavior, and the activity occurred during off-hours, which is unusual for legitimate workloads. Additionally, the high novelty of the principal suggests it is not operating within its normal parameters.",
+  "evidence_hash": "7ac2f2d4",
+  "incident_id": "INC-0099",
+  "key_evidence": [
+    "34 pod_create events detected in a short time frame (less than 1 minute).",
+    "All events occurred during off-hours (00:50-00:51 UTC).",
+    "Principal ID is a service account associated with the ReplicaSet controller, which is not typically expected to generate this volume of activity.",
+    "High novelty scores for the principal (up to 609), indicating unusual behavior for this service account."
+  ],
+  "likely_intent": "Malicious resource hijacking through excessive pod creation.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement rate limiting on pod creation requests.",
+    "Monitor and alert on unusual activity patterns for service accounts.",
+    "Restrict service account permissions to only necessary actions."
+  ],
+  "triage_source": "llm"
+}

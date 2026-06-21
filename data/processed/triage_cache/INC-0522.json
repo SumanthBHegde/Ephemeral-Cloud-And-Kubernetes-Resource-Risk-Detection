@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the involvement of novel principals and the high risk score. Legitimate bursts typically involve known principals and expected patterns of behavior, which are absent here.",
+  "evidence_hash": "9e659b63",
+  "incident_id": "INC-0522",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-43gh@partner.example) within a short time frame (53 seconds).",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', indicating potential unauthorized access to resources.",
+    "The risk score is high (0.6) and the risk rank is 259, indicating significant concern.",
+    "The principal's novelty suggests it is not a typical user behavior, raising suspicion."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual authentication patterns, especially from novel principals.",
+    "Establish resource access logging and review mechanisms to detect unauthorized access attempts."
+  ],
+  "triage_source": "llm"
+}

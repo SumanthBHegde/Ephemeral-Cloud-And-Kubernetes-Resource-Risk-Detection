@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions are performed by a novel principal with no established behavioral cohort, and the rapid sequence of 'GetObject' actions suggests potential data exfiltration rather than legitimate scaling or CI activity.",
+  "evidence_hash": "67406529",
+  "incident_id": "INC-0326",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'AROA5H7PU5EHO5HSIJCTJ:contractor-wfez'.",
+    "The actions occurred within a short time frame (55 seconds) indicating a potential burst of activity.",
+    "The principal 'contractor-wfez@partner.example' authenticated via an IDP before the actions, suggesting possible credential misuse."
+  ],
+  "likely_intent": "Unauthorized data access and potential exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1041",
+    "T1496"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

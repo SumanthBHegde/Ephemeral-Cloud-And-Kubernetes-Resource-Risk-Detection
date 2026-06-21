@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the off-hours timing and the use of a novel principal for accessing multiple objects, which is atypical for legitimate scaling or CI activities.",
+  "evidence_hash": "269edf2a",
+  "incident_id": "INC-0315",
+  "key_evidence": [
+    "Multiple 'GetObject' actions were performed by a novel principal 'AROAQCUN6RM6IWIL7EL4C:contractor-kwi5'.",
+    "The incident occurred during off-hours, indicating potential malicious intent.",
+    "The principal 'contractor-kwi5@partner.example' is associated with a novel authentication event.",
+    "The risk score is high (0.6) and the risk rank is 189."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on off-hours access attempts by novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

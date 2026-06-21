@@ -1,0 +1,23 @@
+{
+  "confidence": 0.9,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions occurred during off-hours, the principal has high privileges, and there is a lack of tag completeness, indicating potential misuse rather than legitimate scaling activities.",
+  "evidence_hash": "d932cdf5",
+  "incident_id": "INC-0424",
+  "key_evidence": [
+    "Multiple pod creation events (6 total) by the same principal 'dev-user' during off-hours (1:32 AM to 2:00 AM UTC).",
+    "Service exposure events (2 total) occurred during off-hours, indicating potential unauthorized access.",
+    "High privilege level (2) for the principal 'dev-user' with no tag completeness (0.0), suggesting lack of proper ownership or oversight."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for sensitive actions.",
+    "Enforce tagging policies to ensure all resources are properly tagged for ownership and accountability.",
+    "Set up alerts for off-hours activity, especially for privileged actions in the development namespace."
+  ],
+  "triage_source": "llm"
+}

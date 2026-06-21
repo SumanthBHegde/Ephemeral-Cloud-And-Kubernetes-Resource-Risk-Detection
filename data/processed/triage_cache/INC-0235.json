@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst because the actions are performed by a novel principal with no established cohort, and the rapid sequence of 'GetObject' actions suggests potential data exfiltration rather than legitimate scaling or CI activity.",
+  "evidence_hash": "b1e83ca6",
+  "incident_id": "INC-0235",
+  "key_evidence": [
+    "Multiple 'GetObject' actions were performed by a novel principal 'AROAMO4PNILQOOKSSA7D6:contractor-dbju'.",
+    "The actions occurred within a short time frame (61 seconds) and involved accessing multiple resources (part-0000.parquet, part-0001.parquet, part-0002.parquet).",
+    "The principal 'contractor-dbju@partner.example' is associated with a novel authentication event via IDP, indicating potential misuse of credentials."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts, especially those with access to sensitive data."
+  ],
+  "triage_source": "llm"
+}

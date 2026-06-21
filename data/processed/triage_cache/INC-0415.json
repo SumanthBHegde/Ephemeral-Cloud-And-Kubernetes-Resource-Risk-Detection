@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the use of novel principals and the sequence of actions indicating potential unauthorized access rather than legitimate scaling or CI operations.",
+  "evidence_hash": "4b227560",
+  "incident_id": "INC-0415",
+  "key_evidence": [
+    "Multiple GetObject actions from the same principal within a short time frame.",
+    "Use of AssumeRoleWithWebIdentity by a novel principal.",
+    "High risk score of 0.6 and risk rank of 226 indicating suspicious activity.",
+    "Authentication via IDP from a novel principal before the actions occurred."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual patterns of access, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

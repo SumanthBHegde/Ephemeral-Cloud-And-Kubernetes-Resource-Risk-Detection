@@ -1,0 +1,26 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions are concentrated in a short time frame with multiple 'GetObject' calls, indicating potential data exfiltration rather than legitimate scaling or CI activity. Additionally, the off-hours timing and high novelty score of the principal further suggest malicious intent rather than expected behavior.",
+  "evidence_hash": "7c00b992",
+  "incident_id": "INC-0523",
+  "key_evidence": [
+    "Multiple 'GetObject' actions detected from the same principal within a short time frame (6 events in 50 seconds).",
+    "The principal 'contractor-wv34' has a novelty score of 3, indicating unusual behavior.",
+    "The actions occurred during off-hours (23:00 UTC).",
+    "The principal 'contractor-wv34' is associated with a role assumed via 'AssumeRoleWithWebIdentity', which is often used for temporary access.",
+    "High risk score of 0.6 and risk rank of 260 suggest significant concern."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Set up alerts for unusual access patterns, especially during off-hours.",
+    "Enforce multi-factor authentication for all principal accounts.",
+    "Regularly review and audit roles and permissions associated with external identities."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign CI runner burst because the event count (10) and the rapid succession of pod creation (within 10 seconds) exceed typical CI/CD activity patterns. Additionally, the novelty of the principal suggests it may be compromised or misused, rather than a legitimate autoscaler or CI process.",
+  "evidence_hash": "1618b681",
+  "incident_id": "INC-0255",
+  "key_evidence": [
+    "10 pod_create events detected in a short time frame (less than 10 seconds).",
+    "All events originated from the same service account: system:serviceaccount:ci:ci-runner-sa.",
+    "The events occurred within the 'ci' namespace, which is typically used for CI/CD processes.",
+    "The principal has a high novelty score (763-767) indicating unusual behavior for this service account."
+  ],
+  "likely_intent": "Malicious resource hijacking via excessive pod creation.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement rate limiting on pod creation requests.",
+    "Monitor and alert on unusual activity from service accounts, especially those with high novelty scores.",
+    "Review and restrict permissions for service accounts to limit potential abuse."
+  ],
+  "triage_source": "llm"
+}

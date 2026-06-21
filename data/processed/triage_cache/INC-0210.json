@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions are concentrated in a short time frame with a novel principal and off-hours timing, indicating potential malicious intent rather than legitimate scaling or CI activity.",
+  "evidence_hash": "aafa9107",
+  "incident_id": "INC-0210",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by the same principal within a short time frame (7 events in total).",
+    "The principal 'contractor-5a26' is not a privileged user and has a novelty score indicating unusual behavior.",
+    "The 'AssumeRoleWithWebIdentity' action was executed by a novel principal, suggesting potential misuse of identity.",
+    "The events occurred during off-hours, which raises suspicion about their legitimacy."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially during off-hours.",
+    "Enforce multi-factor authentication for all principals, especially those accessing sensitive data."
+  ],
+  "triage_source": "llm"
+}

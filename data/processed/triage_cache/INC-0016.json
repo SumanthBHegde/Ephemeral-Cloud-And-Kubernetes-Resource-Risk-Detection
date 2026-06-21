@@ -1,0 +1,25 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI runner burst because it occurred during off-hours, the principal shows high novelty, and there is a complete lack of resource tagging, which is atypical for legitimate CI/CD operations.",
+  "evidence_hash": "6d5eb067",
+  "incident_id": "INC-0016",
+  "key_evidence": [
+    "30 RunInstances actions detected in a short time frame (less than 5 minutes).",
+    "All events occurred during off-hours (03:57 UTC).",
+    "Principal 'ci-deploy' has a high novelty score (up to 14) indicating unusual behavior.",
+    "Tag completeness is 0.0, suggesting lack of proper resource tagging and ownership.",
+    "Public exposure flag is 0.6, indicating potential risk of exposure."
+  ],
+  "likely_intent": "Resource hijacking through unauthorized instance launches.",
+  "mitre": [
+    "T1496",
+    "T1078",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit instance launch permissions.",
+    "Enforce tagging policies for all resources to ensure ownership and accountability.",
+    "Set up alerts for unusual activity during off-hours, especially for instance launches."
+  ],
+  "triage_source": "llm"
+}

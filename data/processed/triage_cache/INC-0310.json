@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst because the actions are concentrated in a short time frame with multiple 'GetObject' calls, indicating potential data access rather than scaling activities. Additionally, the presence of a novel principal and the lack of any legitimate context for these actions suggest malicious intent rather than normal operational behavior.",
+  "evidence_hash": "85133b7d",
+  "incident_id": "INC-0310",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by the same principal within a short time frame (66 seconds).",
+    "The principal 'contractor-omvx' has a novelty score of 3, indicating unusual behavior.",
+    "The 'AssumeRoleWithWebIdentity' action was executed by a novel principal 'okta|xa5owhepkoetzdbukmfd'.",
+    "All actions occurred during the same session without any privileged access."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially for novel principals.",
+    "Enforce multi-factor authentication for all role assumptions."
+  ],
+  "triage_source": "llm"
+}

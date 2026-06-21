@@ -1,0 +1,26 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI runner burst because the high novelty score and the rapid sequence of pod deletions and creations suggest unusual activity that deviates from normal CI/CD patterns, indicating potential malicious intent rather than legitimate scaling or CI operations.",
+  "evidence_hash": "57a18485",
+  "incident_id": "INC-0162",
+  "key_evidence": [
+    "24 events recorded in a short time frame (max exposure window: 418 seconds)",
+    "All actions performed by the same principal (system:serviceaccount:ci:ci-runner-sa)",
+    "High novelty score (579) indicating unusual behavior for the principal",
+    "Pod operations (create and delete) occurred in the 'build' namespace, which is typically used for CI/CD processes",
+    "No privileged access detected (max privilege level: 0)"
+  ],
+  "likely_intent": "Malicious resource manipulation via unauthorized pod operations.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement stricter RBAC policies to limit service account permissions",
+    "Set resource quotas for the 'build' namespace to prevent abuse",
+    "Monitor and alert on unusual patterns of pod creation and deletion",
+    "Conduct regular audits of service account usage and permissions"
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the use of novel principals that have not been previously observed in the environment, and the actions taken are indicative of unauthorized access rather than legitimate scaling or CI operations.",
+  "evidence_hash": "8ee707c8",
+  "incident_id": "INC-0311",
+  "key_evidence": [
+    "Multiple actions performed by novel principals: 'contractor-cnup' and 'okta|vd6lpw3o3fq4wf7h6b7p'.",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', indicating potential resource access and role assumption.",
+    "The incident occurred within a short time frame (42 seconds) with multiple events, suggesting a burst of activity.",
+    "The risk score is high (0.6) and the risk rank is 186, indicating significant concern."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using novel principals.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on the use of novel principals and unusual authentication patterns.",
+    "Enforce multi-factor authentication for all cloud access."
+  ],
+  "triage_source": "llm"
+}

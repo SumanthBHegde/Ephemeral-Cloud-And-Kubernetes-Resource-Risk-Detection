@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the use of novel principals and the lack of established behavior patterns for these accounts. The actions taken are consistent with potential unauthorized access rather than legitimate scaling or CI operations.",
+  "evidence_hash": "e2809e9a",
+  "incident_id": "INC-0195",
+  "key_evidence": [
+    "Multiple actions performed by novel principals in a short time frame.",
+    "The principal 'contractor-bnuk' is marked as novel and has no prior activity.",
+    "Actions include 'AssumeRoleWithWebIdentity' and 'GetObject', which are indicative of accessing resources without proper authorization."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using novel principals.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on the use of novel principals and unusual access patterns.",
+    "Enforce multi-factor authentication for all cloud access."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the use of novel principals and the off-hours timing of the events, which are atypical for legitimate automated processes.",
+  "evidence_hash": "0d8c9c7c",
+  "incident_id": "INC-0419",
+  "key_evidence": [
+    "Multiple actions performed by novel principals: 'contractor-bs4f' and 'okta|f2r2mfwxhkmlxqbtit7y'.",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', indicating potential resource access and role assumption.",
+    "The event occurred during off-hours, raising suspicion about the legitimacy of the access."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using novel principals.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Enforce multi-factor authentication for all user accounts, especially for those accessing cloud resources.",
+    "Set up alerts for unusual access patterns, particularly during off-hours."
+  ],
+  "triage_source": "llm"
+}

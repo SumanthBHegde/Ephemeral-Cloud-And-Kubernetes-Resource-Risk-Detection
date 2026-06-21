@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the novel principal's lack of prior activity and the off-hours timing of the events, which are atypical for legitimate operations.",
+  "evidence_hash": "61cf55d7",
+  "incident_id": "INC-0524",
+  "key_evidence": [
+    "The principal 'contractor-fnfj@partner.example' is a novel principal with no prior activity in the system.",
+    "Multiple 'GetObject' actions were performed in a short time frame (73 seconds) by the same principal.",
+    "The actions occurred outside of normal business hours, indicating potential malicious intent.",
+    "The risk score of 0.6 and high risk rank (261) suggest significant concern regarding the nature of the activities."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all access to cloud resources."
+  ],
+  "triage_source": "llm"
+}

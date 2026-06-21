@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI runner burst because the actions occurred during off-hours, the principal has low tag completeness, and the high novelty score indicates behavior that is not typical for the principal's cohort.",
+  "evidence_hash": "88533ef8",
+  "incident_id": "INC-0237",
+  "key_evidence": [
+    "42 instances launched in a short time frame (5 minutes) by the same principal.",
+    "All events occurred during off-hours (05:51 UTC).",
+    "Principal 'AROA7YGTSQBIEQXOTPJMH:ci-deploy' has low tag completeness (0.0), indicating potential misconfiguration or lack of oversight.",
+    "High novelty score (41) suggests unusual behavior for the principal, deviating from expected patterns."
+  ],
+  "likely_intent": "Resource hijacking through unauthorized instance launches.",
+  "mitre": [
+    "T1496",
+    "T1078",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit instance launch permissions to specific time windows.",
+    "Enforce tagging policies to ensure all resources are properly tagged for ownership and accountability.",
+    "Set up alerts for unusual activity patterns, especially during off-hours."
+  ],
+  "triage_source": "llm"
+}

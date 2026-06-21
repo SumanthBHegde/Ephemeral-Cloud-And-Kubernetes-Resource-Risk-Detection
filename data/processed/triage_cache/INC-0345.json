@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the use of a novel principal that has not been previously recognized in the environment, combined with the timing and nature of the actions taken, which suggest unauthorized access rather than legitimate scaling or CI operations.",
+  "evidence_hash": "61f03cce",
+  "incident_id": "INC-0345",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-hu3u@partner.example) within a short time frame.",
+    "The principal 'contractor-hu3u' is not recognized as a legitimate user in the system, indicating potential misuse.",
+    "Actions include 'AssumeRoleWithWebIdentity' and 'GetObject', which are typically associated with accessing sensitive resources."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using a novel principal.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict identity and access management policies to limit role assumptions to known principals.",
+    "Set up alerts for actions performed by novel principals or during off-hours to detect potential unauthorized access.",
+    "Regularly review and audit IAM roles and permissions to ensure they are assigned appropriately."
+  ],
+  "triage_source": "llm"
+}

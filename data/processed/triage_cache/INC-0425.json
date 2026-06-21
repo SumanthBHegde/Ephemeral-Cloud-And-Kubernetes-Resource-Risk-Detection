@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI runner burst due to the novelty of the principal and the timing of the events. Legitimate bursts typically involve known principals and occur during regular operational hours.",
+  "evidence_hash": "f541e773",
+  "incident_id": "INC-0425",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by the same principal in a short time frame (7 events within 61 seconds).",
+    "The principal 'contractor-7t3w' is marked as a novel principal, indicating potential unauthorized access.",
+    "The actions occurred during off-hours, suggesting suspicious activity outside of normal operational times."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Set up alerts for unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts, especially for external contractors."
+  ],
+  "triage_source": "llm"
+}

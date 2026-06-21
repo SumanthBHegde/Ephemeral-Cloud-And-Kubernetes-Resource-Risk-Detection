@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler burst because the high novelty score and the rapid succession of instance launches (21 in a short time) indicate unusual behavior for the autoscaler, which typically operates within defined limits and patterns. The context suggests potential exploitation rather than legitimate scaling activity.",
+  "evidence_hash": "cc8678fe",
+  "incident_id": "INC-0496",
+  "key_evidence": [
+    "21 events of 'RunInstances' action detected from the same principal 'service:autoscaling.amazonaws.com'.",
+    "The events occurred in a short time window (128 seconds) with a high novelty score (up to 299).",
+    "All events have a tag completeness of 1.0, indicating proper tagging, but the context suggests potential misuse of the autoscaler service."
+  ],
+  "likely_intent": "Resource hijacking through unauthorized instance launches.",
+  "mitre": [
+    "T1496",
+    "T1578",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit the actions of the autoscaling service.",
+    "Set quotas on the number of instances that can be launched by the autoscaler to prevent abuse.",
+    "Monitor and alert on unusual patterns of instance launches, especially during off-hours."
+  ],
+  "triage_source": "llm"
+}

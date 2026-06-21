@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the novelty of the principal and the off-hours timing of the events, which are atypical for legitimate automated processes.",
+  "evidence_hash": "84eb4393",
+  "incident_id": "INC-0114",
+  "key_evidence": [
+    "Multiple GetObject actions from the same principal within a short time frame (6 events in 70 seconds).",
+    "The principal 'contractor-p7dy' is marked as a novel principal, indicating potential unauthorized access.",
+    "The actions occurred during off-hours, raising suspicion about their legitimacy."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Set up alerts for unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

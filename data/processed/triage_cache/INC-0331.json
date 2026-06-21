@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst because the principal is novel and has a high novelty score, indicating it is not part of the expected behavioral cohort. Additionally, the actions are concentrated in a short time frame and occur off-hours, which is atypical for legitimate scaling or CI activities.",
+  "evidence_hash": "268778b1",
+  "incident_id": "INC-0331",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'AROA4V5Y6RVUXGXQ3K7SF:contractor-u3jm' within a short time frame (70 seconds).",
+    "The principal is marked as novel and has a high novelty score (4) indicating unusual behavior.",
+    "The actions occurred during off-hours, suggesting potential malicious intent."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all access to critical resources."
+  ],
+  "triage_source": "llm"
+}

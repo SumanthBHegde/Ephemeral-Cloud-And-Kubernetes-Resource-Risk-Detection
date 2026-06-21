@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler burst because the high novelty score of the principal and the rapid succession of instance launches indicate potential misuse rather than normal scaling behavior. The context suggests that the actions are not typical for the autoscaling service, which usually operates within defined parameters and patterns.",
+  "evidence_hash": "ad8834cb",
+  "incident_id": "INC-0251",
+  "key_evidence": [
+    "21 instances were launched in a short time frame (126 seconds) by the same principal (service:autoscaling.amazonaws.com).",
+    "The principal has a high novelty score (120) indicating unusual behavior.",
+    "All events have a tag completeness of 1.0, suggesting they are well-defined but potentially misused.",
+    "The actions were performed during business hours (not off-hours), which is atypical for a legitimate autoscaler burst."
+  ],
+  "likely_intent": "Resource hijacking through unauthorized instance launches.",
+  "mitre": [
+    "T1496",
+    "T1578"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit the actions of the autoscaling service.",
+    "Set quotas on the number of instances that can be launched by the autoscaling service to prevent abuse.",
+    "Monitor and alert on unusual patterns of instance launches, especially those with high novelty scores."
+  ],
+  "triage_source": "llm"
+}

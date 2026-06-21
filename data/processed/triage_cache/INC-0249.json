@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign CI runner burst because the high novelty score and the excessive number of pod creation and deletion events suggest unusual behavior that deviates from typical CI runner activity, which would normally have more predictable patterns and lower novelty.",
+  "evidence_hash": "6dba9001",
+  "incident_id": "INC-0249",
+  "key_evidence": [
+    "54 events recorded in a short time frame (max exposure window of 718 seconds)",
+    "Principal 'system:serviceaccount:ci:ci-runner-sa' is associated with CI runner cohort, but shows high novelty in behavior (max novelty of 785)",
+    "Multiple pod creation and deletion actions in the 'build' namespace without clear ownership or purpose",
+    "Low tag completeness (0.4) indicating potential misconfiguration or lack of oversight."
+  ],
+  "likely_intent": "Malicious resource hijacking through excessive pod creation and deletion.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas for namespaces to limit excessive resource consumption",
+    "Enforce strict role-based access control (RBAC) policies to limit actions of service accounts",
+    "Monitor and alert on unusual patterns of pod creation and deletion in CI/CD namespaces."
+  ],
+  "triage_source": "llm"
+}

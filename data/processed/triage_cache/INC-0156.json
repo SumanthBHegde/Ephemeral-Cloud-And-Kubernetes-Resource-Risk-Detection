@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the event count is significantly higher than expected for normal CI/CD operations, and the timing and clustering of pod creation and deletion suggest potential malicious intent rather than legitimate scaling or job execution.",
+  "evidence_hash": "7b26d74e",
+  "incident_id": "INC-0156",
+  "key_evidence": [
+    "46 events recorded in a short time frame (2914 seconds) indicating a burst of activity.",
+    "Principal 'system:serviceaccount:ci:ci-runner-sa' is associated with CI runner, but the event count is unusually high for a typical CI workload.",
+    "Pod creation and deletion actions are clustered closely in time, suggesting potential abuse rather than legitimate CI/CD activity.",
+    "The tag completeness is low (0.4 for some events), indicating incomplete ownership or misconfiguration."
+  ],
+  "likely_intent": "Malicious resource hijacking through excessive pod creation and deletion.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas for CI/CD namespaces to limit the number of concurrent pods.",
+    "Monitor and alert on unusual patterns of pod creation and deletion, especially in CI/CD namespaces.",
+    "Enhance tag completeness requirements for service accounts to ensure proper ownership and accountability."
+  ],
+  "triage_source": "llm"
+}

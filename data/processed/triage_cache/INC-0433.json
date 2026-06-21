@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions were performed by a novel principal with no established behavioral cohort, and the timing was off-hours, which is atypical for legitimate operations.",
+  "evidence_hash": "a3c804c9",
+  "incident_id": "INC-0433",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'AROA2M67GRF63NCKSLACP:contractor-qfqp' within a short time frame.",
+    "The principal 'contractor-qfqp@partner.example' authenticated via an IDP just before the actions occurred.",
+    "The actions occurred during off-hours, indicating potential malicious intent."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Set up alerts for unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

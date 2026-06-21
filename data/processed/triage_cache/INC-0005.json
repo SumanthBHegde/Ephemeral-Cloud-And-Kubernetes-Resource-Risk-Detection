@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the novelty of the principal and the specific actions taken (data retrieval) that are not typical for autoscaling or CI processes. Additionally, the timing of the events is outside normal operational hours, further indicating potential malicious intent.",
+  "evidence_hash": "7888ff69",
+  "incident_id": "INC-0005",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-h5lb@partner.example) with no prior activity in the system.",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', indicating potential data access and privilege escalation.",
+    "The events occurred within a short time frame (47 seconds) and during off-hours, suggesting suspicious activity.",
+    "The principal is marked as novel, indicating it has not been seen in previous activity, raising concerns about legitimacy."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on actions performed by novel principals, especially during off-hours.",
+    "Establish a data access logging and review process to detect unusual patterns."
+  ],
+  "triage_source": "llm"
+}

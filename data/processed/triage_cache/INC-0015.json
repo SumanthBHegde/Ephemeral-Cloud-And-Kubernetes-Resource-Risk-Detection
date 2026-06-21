@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the involvement of a novel principal with no established behavior pattern, and the actions taken (data retrieval) are not typical for autoscaling or CI processes.",
+  "evidence_hash": "59ea7cdd",
+  "incident_id": "INC-0015",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-lzii) within a short time frame (47 seconds).",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', indicating potential data access and privilege escalation.",
+    "The principal is not part of a known cohort and has a high novelty score, suggesting unusual behavior.",
+    "The risk score is high (0.6) and the risk rank is 73, indicating significant concern."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all identity providers."
+  ],
+  "triage_source": "llm"
+}

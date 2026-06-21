@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions are performed by a novel principal with no established behavior pattern, and the timing is off-hours, which is atypical for legitimate operations.",
+  "evidence_hash": "746d4067",
+  "incident_id": "INC-0432",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-hgbo@partner.example) with no prior activity in the system.",
+    "Actions include 'AssumeRoleWithWebIdentity' and multiple 'GetObject' calls to access data resources.",
+    "The incident occurred during off-hours, indicating potential malicious intent.",
+    "The principal's novelty score is high, suggesting this is not a typical user behavior."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on off-hours access attempts by novel principals.",
+    "Enforce multi-factor authentication for all user accounts, especially for external contractors."
+  ],
+  "triage_source": "llm"
+}

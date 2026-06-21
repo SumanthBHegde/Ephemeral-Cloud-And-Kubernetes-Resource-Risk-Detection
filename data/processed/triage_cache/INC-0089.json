@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because it occurred during off-hours, indicating unusual activity. The high number of pod creation events (44) in a short time frame suggests potential abuse rather than legitimate scaling activity, especially given the context of the principal's behavior and the incomplete tagging.",
+  "evidence_hash": "7558fc86",
+  "incident_id": "INC-0089",
+  "key_evidence": [
+    "44 pod_create events detected in a short time frame (less than 2 minutes).",
+    "All events occurred during off-hours (23:00 UTC).",
+    "The principal is a service account (system:serviceaccount:kube-system:replicaset-controller) with no elevated privileges.",
+    "The tag completeness is only 0.6, indicating potential misconfiguration or lack of ownership clarity."
+  ],
+  "likely_intent": "Malicious resource hijacking through excessive pod creation.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas for pod creation in the production namespace.",
+    "Set up alerts for unusual pod creation rates, especially during off-hours.",
+    "Review and restrict permissions for service accounts to limit potential abuse."
+  ],
+  "triage_source": "llm"
+}

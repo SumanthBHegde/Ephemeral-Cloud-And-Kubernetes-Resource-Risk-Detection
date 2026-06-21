@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions are concentrated in a short time frame with a high novelty score, indicating potential unauthorized access rather than legitimate scaling or CI activity.",
+  "evidence_hash": "7b8f5886",
+  "incident_id": "INC-0204",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by the same principal within a short time frame (62 seconds).",
+    "The principal 'AROAHOYSQS5QURMELOLXZ:contractor-pqfl' has a high novelty score of 4, indicating unusual behavior.",
+    "The event occurred during off-hours, which raises suspicion about the legitimacy of the actions."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Set up alerts for unusual access patterns, especially during off-hours.",
+    "Regularly review and audit principal permissions and activity logs."
+  ],
+  "triage_source": "llm"
+}

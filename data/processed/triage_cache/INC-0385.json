@@ -1,0 +1,24 @@
+{
+  "confidence": 0.9,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the event count (24) is significantly higher than typical usage patterns for a single developer, and the lack of resource tagging suggests potential malicious intent rather than legitimate development activity.",
+  "evidence_hash": "fa5fa34f",
+  "incident_id": "INC-0385",
+  "key_evidence": [
+    "24 pod_create events detected from the same principal (dev-user) within a short time frame (less than 1 hour).",
+    "The principal (dev-user) has a high privilege level (2) and is part of the human_dev cohort, indicating potential for misuse.",
+    "The events occurred during regular working hours (no off-hours flag), but the burst of activity is unusual given the context of the principal's behavior.",
+    "The tag completeness is 0.0, indicating a lack of proper resource tagging which is a red flag for potential misuse."
+  ],
+  "likely_intent": "Malicious resource hijacking or abuse of privileges.",
+  "mitre": [
+    "T1496",
+    "T1078",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas to limit the number of pods a single user can create in a given time frame.",
+    "Enforce strict tagging policies for all resources to ensure accountability and traceability.",
+    "Monitor and alert on unusual patterns of resource creation, especially from privileged accounts."
+  ],
+  "triage_source": "llm"
+}

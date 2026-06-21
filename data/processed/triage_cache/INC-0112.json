@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the novel principal's lack of prior activity and the off-hours timing of the events, which are not typical for legitimate scaling or CI operations.",
+  "evidence_hash": "70a041b4",
+  "incident_id": "INC-0112",
+  "key_evidence": [
+    "The principal 'contractor-cked@partner.example' is a novel principal with no prior activity, indicating potential misuse.",
+    "Multiple 'GetObject' actions were performed in a short time frame (6 events within 55 seconds), suggesting abnormal behavior.",
+    "The events occurred during off-hours (03:59-04:00 UTC), which is atypical for legitimate operations."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce time-based access controls to restrict access during off-hours."
+  ],
+  "triage_source": "llm"
+}

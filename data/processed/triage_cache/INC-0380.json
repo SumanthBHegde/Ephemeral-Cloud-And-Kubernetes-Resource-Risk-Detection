@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the actions taken by 'dev-user' included exposing a service publicly, which is atypical for standard autoscaling or CI operations. Additionally, the high privilege level and the sequence of actions suggest a deliberate attempt to manipulate resources rather than automated scaling behavior.",
+  "evidence_hash": "efbd5dcf",
+  "incident_id": "INC-0380",
+  "key_evidence": [
+    "The principal 'dev-user' has a high privilege level (2) and performed actions that include 'pod_create', 'service_expose', and 'pod_delete'.",
+    "The 'service_expose' action resulted in public exposure (public_exposure_flag: 1.0) of a service in the 'dev' namespace.",
+    "The incident occurred within a short time frame (540 seconds) with multiple actions taken by the same principal, indicating potential malicious intent."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource manipulation.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for users in development environments.",
+    "Set up alerts for any service exposure actions, especially in non-production namespaces.",
+    "Enforce network policies to restrict public access to services unless explicitly required."
+  ],
+  "triage_source": "llm"
+}

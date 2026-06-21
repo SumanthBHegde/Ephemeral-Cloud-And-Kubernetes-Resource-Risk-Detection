@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst because the principal is novel and lacks a known behavioral cohort, and the actions are concentrated in a short time frame during off-hours, which is atypical for legitimate operations.",
+  "evidence_hash": "b1180e2e",
+  "incident_id": "INC-0014",
+  "key_evidence": [
+    "The principal 'contractor-g45x@partner.example' is a novel principal with no prior activity.",
+    "Multiple 'GetObject' actions were performed in a short time frame (43 seconds) by the same principal.",
+    "The actions occurred during off-hours (02:53 UTC), indicating potential malicious intent."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all access to critical resources."
+  ],
+  "triage_source": "llm"
+}

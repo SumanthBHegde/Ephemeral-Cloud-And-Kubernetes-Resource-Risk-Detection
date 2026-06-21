@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI runner burst because the action taken (rbac_change) is not typical for automated processes and lacks proper tagging, indicating potential malicious intent rather than legitimate scaling or deployment activities.",
+  "evidence_hash": "6854a48d",
+  "incident_id": "INC-0383",
+  "key_evidence": [
+    "The action 'rbac_change' indicates a modification of role-based access control settings.",
+    "The principal 'dev-user' is part of the 'human_dev' cohort, which typically does not perform such actions in the 'kube-system' namespace.",
+    "The event occurred during regular hours (off_hours_flag: 0), suggesting it was not part of a scheduled CI/CD process.",
+    "The tag completeness is 0.0, indicating a lack of proper tagging and ownership for the resource being modified."
+  ],
+  "likely_intent": "Unauthorized privilege escalation in Kubernetes.",
+  "mitre": [
+    "T1078",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict RBAC policies to limit access to sensitive namespaces like 'kube-system'.",
+    "Enable audit logging for all RBAC changes to monitor and alert on unauthorized modifications.",
+    "Establish a tagging policy to ensure all resources have appropriate ownership and purpose tags."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst because the principal is novel and the actions are clustered in a short time frame, indicating potential misuse rather than legitimate scaling or CI activity.",
+  "evidence_hash": "56aa352e",
+  "incident_id": "INC-0207",
+  "key_evidence": [
+    "The principal 'contractor-lyiz' is marked as a novel principal, indicating potential unauthorized use.",
+    "Multiple actions (GetObject, AssumeRoleWithWebIdentity) were performed in a short time frame (54 seconds) by the same principal.",
+    "The risk score is high (0.6) and the risk band is classified as HIGH, indicating significant concern.",
+    "The actions were performed during off-hours, which raises suspicion of malicious intent."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using compromised credentials.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Enable multi-factor authentication (MFA) for all users, especially contractors.",
+    "Monitor and alert on unusual access patterns, especially during off-hours."
+  ],
+  "triage_source": "llm"
+}

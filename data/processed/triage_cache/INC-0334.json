@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the presence of a novel principal and the specific actions taken (multiple 'GetObject' requests) that suggest data access rather than scaling operations. Additionally, the actions are clustered in a short time frame, which is atypical for legitimate autoscaling or CI activities.",
+  "evidence_hash": "57dbcdc3",
+  "incident_id": "INC-0334",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a principal with a low privilege level.",
+    "The principal 'contractor-m3xv' is marked as a novel principal, indicating potential unauthorized access.",
+    "The actions occurred in a short time frame (within 50 seconds) and involved multiple resource IDs.",
+    "The 'AssumeRoleWithWebIdentity' action indicates a potential misuse of identity federation."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual patterns of access, especially from novel principals.",
+    "Enforce multi-factor authentication for all identity federation actions."
+  ],
+  "triage_source": "llm"
+}

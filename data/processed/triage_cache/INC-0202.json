@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the novel principal's lack of prior activity and the off-hours timing of the events, which are atypical for legitimate scaling or CI operations.",
+  "evidence_hash": "4427f1c1",
+  "incident_id": "INC-0202",
+  "key_evidence": [
+    "Multiple 'GetObject' actions from a novel principal 'AROAD6CGPPZCX7JNVS74R:contractor-dbag' within a short time frame.",
+    "The principal 'contractor-dbag@partner.example' is novel and has no prior activity context.",
+    "The actions occurred during off-hours, indicating potential malicious intent."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce time-based access controls to restrict access during off-hours."
+  ],
+  "triage_source": "llm"
+}

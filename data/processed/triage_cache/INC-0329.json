@@ -1,0 +1,24 @@
+{
+  "confidence": 0.9,
+  "disambiguation": "This is not a benign autoscaler or CI runner burst because the actions taken (service expose and pod delete) during off-hours indicate potential malicious intent rather than normal scaling or CI operations, which typically occur during business hours and with proper tagging and ownership.",
+  "evidence_hash": "d268f424",
+  "incident_id": "INC-0329",
+  "key_evidence": [
+    "The incident occurred during off-hours (01:56-02:01 UTC) when normal development activity is unlikely.",
+    "The principal 'dev-user' has a high privilege level (2) and is creating and exposing services without proper ownership or tags.",
+    "The service expose action resulted in public exposure (1.0) of a service, indicating a potential security risk.",
+    "The event count is low (3 events) but includes both service exposure and pod deletion, which is atypical for legitimate CI/CD activity."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for service exposure actions.",
+    "Enforce tagging and ownership policies for all resources to ensure accountability.",
+    "Set up alerts for off-hours activity, especially for privileged actions like service exposure."
+  ],
+  "triage_source": "llm"
+}

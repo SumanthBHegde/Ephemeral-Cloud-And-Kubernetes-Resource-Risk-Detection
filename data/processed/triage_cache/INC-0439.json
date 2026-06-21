@@ -1,0 +1,25 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst due to the high volume of pod creation (52 events) in a very short time frame (932 seconds) during off-hours, which is atypical for normal autoscaling behavior. The risk score and rank further indicate potential malicious intent rather than legitimate scaling activity.",
+  "evidence_hash": "8a4f28b1",
+  "incident_id": "INC-0439",
+  "key_evidence": [
+    "52 pod_create events detected in a short time frame (932 seconds)",
+    "All events occurred during off-hours (04:28 - 04:30)",
+    "Principal is a service account (system:serviceaccount:kube-system:replicaset-controller) with no elevated privileges",
+    "High risk score (0.7519) and risk rank (46) indicate potential malicious activity",
+    "Cohort behavior indicates a pattern of HPA autoscaler, but the timing and volume are suspicious."
+  ],
+  "likely_intent": "Malicious resource hijacking through excessive pod creation.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement rate limiting on pod creation requests",
+    "Monitor and alert on off-hours activity for critical resources",
+    "Review and restrict permissions for service accounts to limit potential abuse",
+    "Establish quotas for resource usage to prevent excessive consumption."
+  ],
+  "triage_source": "llm"
+}

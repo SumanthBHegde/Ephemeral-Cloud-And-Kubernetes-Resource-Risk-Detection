@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the novelty of the principal and the specific actions taken (e.g., 'AssumeRoleWithWebIdentity') which are not typical for legitimate autoscaling or CI processes.",
+  "evidence_hash": "c1e05671",
+  "incident_id": "INC-0421",
+  "key_evidence": [
+    "The principal 'contractor-uit5' is a novel principal with no prior activity, indicating potential unauthorized access.",
+    "Multiple 'GetObject' actions were performed in a short time frame (within 5 seconds), suggesting possible data exfiltration.",
+    "The 'AssumeRoleWithWebIdentity' action indicates an attempt to escalate privileges or access resources using a potentially compromised identity."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on novel principals performing high-frequency actions.",
+    "Enforce multi-factor authentication for all user accounts, especially those with access to cloud resources."
+  ],
+  "triage_source": "llm"
+}

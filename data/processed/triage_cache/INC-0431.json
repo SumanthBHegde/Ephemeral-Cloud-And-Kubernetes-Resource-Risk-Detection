@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst because the principal is novel and the actions are concentrated in a short time frame, indicating potential malicious intent rather than legitimate scaling or CI activity.",
+  "evidence_hash": "121c2b1a",
+  "incident_id": "INC-0431",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by the same principal within a short time frame (63 seconds).",
+    "The principal 'AROA6KH3TMWWN3LPTBTGJ:contractor-sn3t' is marked as a novel principal, indicating unusual behavior.",
+    "The risk score is categorized as HIGH, with a risk rank of 236.",
+    "No privileged access was detected, but the actions are suspicious given the context of multiple requests for data objects."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1071",
+    "T1041",
+    "T1496"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially for novel principals.",
+    "Establish data access logging and review mechanisms to detect unauthorized access."
+  ],
+  "triage_source": "llm"
+}

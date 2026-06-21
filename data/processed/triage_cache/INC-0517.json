@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the use of novel principals and the nature of the actions taken, which are indicative of unauthorized access rather than legitimate scaling or CI operations.",
+  "evidence_hash": "e012ba41",
+  "incident_id": "INC-0517",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-x5my) with no prior activity in the system.",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', indicating potential data access and privilege escalation.",
+    "The event occurred within a short time frame (42 seconds) with multiple API calls, suggesting a burst of activity atypical for the principal.",
+    "The risk score is high (0.6) and the risk band is classified as HIGH."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual API call patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts, especially those with access to sensitive data."
+  ],
+  "triage_source": "llm"
+}

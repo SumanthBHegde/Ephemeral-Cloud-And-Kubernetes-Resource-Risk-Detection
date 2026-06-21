@@ -1,0 +1,23 @@
+{
+  "confidence": 0.9,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the high novelty scores (up to 211) and the clustering of 36 RunInstances actions within a short time frame suggest unusual behavior for the autoscaling service, indicating potential malicious intent rather than normal operational activity.",
+  "evidence_hash": "d726634b",
+  "incident_id": "INC-0303",
+  "key_evidence": [
+    "36 RunInstances actions detected from the same principal in a short time frame.",
+    "The principal 'service:autoscaling.amazonaws.com' is associated with an autoscaler but shows high novelty in behavior with a mean p_event of 0.297.",
+    "Tag completeness is 1.0 for some events, indicating proper tagging, but there are also events with lower tag completeness (0.8).",
+    "The event timestamps are clustered closely together, indicating a burst of activity."
+  ],
+  "likely_intent": "Resource hijacking through unauthorized instance launches.",
+  "mitre": [
+    "T1496",
+    "T1578"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit the actions of the autoscaling service.",
+    "Set quotas on the number of instances that can be launched by the autoscaler to prevent abuse.",
+    "Monitor and alert on unusual patterns of instance launches, especially from the autoscaling service."
+  ],
+  "triage_source": "llm"
+}

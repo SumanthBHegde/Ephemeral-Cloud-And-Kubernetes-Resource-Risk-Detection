@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the novel principal's behavior, the timing of the events being off-hours, and the lack of established ownership or tag completeness for the resources accessed.",
+  "evidence_hash": "31ab6849",
+  "incident_id": "INC-0312",
+  "key_evidence": [
+    "Multiple 'GetObject' actions detected from a novel principal 'contractor-hjvm' within a short time frame.",
+    "The principal 'contractor-hjvm@partner.example' authenticated via IDP just before the actions occurred.",
+    "The actions occurred during off-hours, indicating potential malicious intent."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on off-hours access attempts by novel principals.",
+    "Enforce resource tagging and ownership policies to ensure accountability."
+  ],
+  "triage_source": "llm"
+}

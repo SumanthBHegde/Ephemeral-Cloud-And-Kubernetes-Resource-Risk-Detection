@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the presence of novel principals and the specific actions taken (e.g., 'AssumeRoleWithWebIdentity') which are not typical for legitimate scaling or CI operations.",
+  "evidence_hash": "5a331bd9",
+  "incident_id": "INC-0189",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a principal with low privilege level.",
+    "The principal 'contractor-2wep' is marked as a novel principal, indicating potential unauthorized access.",
+    "The actions occurred within a short time frame (54 seconds) and included 'AssumeRoleWithWebIdentity', suggesting role escalation.",
+    "The risk score is high (0.6) and the risk rank is 133, indicating significant concern."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on novel principal activity, especially during off-hours.",
+    "Enforce multi-factor authentication for all role assumptions."
+  ],
+  "triage_source": "llm"
+}

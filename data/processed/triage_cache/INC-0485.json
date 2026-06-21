@@ -1,0 +1,24 @@
+{
+  "confidence": 0.9,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the event count is significantly higher than typical usage patterns for a human developer, and the high novelty and privilege level indicate potential misuse rather than legitimate scaling activities.",
+  "evidence_hash": "b645cfe4",
+  "incident_id": "INC-0485",
+  "key_evidence": [
+    "39 pod_create events detected in a short time frame (less than 2 hours).",
+    "Principal 'dev-user' has a high privilege level (2) and is part of the 'human_dev' cohort.",
+    "All events occurred within the same namespace 'dev' with no controller owner specified.",
+    "High novelty scores for the principal (up to 361) indicate unusual behavior.",
+    "Public exposure flag is high (0.8) for the created resources."
+  ],
+  "likely_intent": "Resource hijacking through excessive pod creation.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas for pod creation in the 'dev' namespace.",
+    "Monitor and alert on unusual patterns of pod creation, especially for high-privilege users.",
+    "Enforce stricter access controls and review privileges for the 'dev-user' principal."
+  ],
+  "triage_source": "llm"
+}

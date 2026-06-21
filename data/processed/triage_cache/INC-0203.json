@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the novel principal's behavior and the off-hours timing of the actions, which are atypical for legitimate scaling or CI activities.",
+  "evidence_hash": "1d05d12b",
+  "incident_id": "INC-0203",
+  "key_evidence": [
+    "Multiple GetObject actions performed by a novel principal (contractor-jelj) within a short time frame.",
+    "The principal is a contractor and has a novel identity, indicating potential misuse of access.",
+    "The actions occurred during off-hours, suggesting suspicious behavior."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict access controls and role-based access management.",
+    "Monitor and alert on off-hours access attempts by novel principals.",
+    "Establish data access logging and anomaly detection for sensitive resources."
+  ],
+  "triage_source": "llm"
+}

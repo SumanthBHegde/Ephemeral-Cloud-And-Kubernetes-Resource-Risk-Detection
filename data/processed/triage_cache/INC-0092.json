@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the use of a novel principal and the off-hours timing of the events, which are atypical for legitimate automated processes.",
+  "evidence_hash": "5de7def7",
+  "incident_id": "INC-0092",
+  "key_evidence": [
+    "The principal 'contractor-o6rz@partner.example' is a novel principal with no prior activity in the system.",
+    "Multiple 'GetObject' actions were performed within a short time frame (38 seconds) by the same principal.",
+    "The 'AssumeRoleWithWebIdentity' action indicates an attempt to gain access using a potentially compromised identity.",
+    "The incident occurred during off-hours, which raises suspicion about the legitimacy of the actions."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using a novel principal.",
+  "mitre": [
+    "T1078",
+    "T1610",
+    "T1496"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on the use of novel principals and off-hours access attempts.",
+    "Enforce multi-factor authentication for all cloud access."
+  ],
+  "triage_source": "llm"
+}

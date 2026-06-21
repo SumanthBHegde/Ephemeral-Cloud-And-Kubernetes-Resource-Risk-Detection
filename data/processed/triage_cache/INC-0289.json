@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the actions include multiple service exposures that resulted in public access, which is atypical for standard autoscaling or CI processes. Additionally, the high privilege level of the principal and the lack of tag completeness raise concerns about the legitimacy of these actions.",
+  "evidence_hash": "74d82d91",
+  "incident_id": "INC-0289",
+  "key_evidence": [
+    "Multiple 'pod_create' actions by the same principal 'dev-user' in a short time frame (9 events total).",
+    "Two 'service_expose' actions that resulted in public exposure of services (public_exposure_flag: 1.0).",
+    "The principal 'dev-user' has a high privilege level (2) and is part of the 'human_dev' cohort, indicating potential misuse of access.",
+    "The events occurred within a short time window, with the last event being a service exposure at 16:35:07, indicating a burst of activity."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement stricter role-based access controls (RBAC) to limit privileges for the 'dev-user'.",
+    "Set up alerts for unusual patterns of service exposure, especially for high-privilege accounts.",
+    "Enforce tagging policies to ensure all resources are properly tagged and monitored."
+  ],
+  "triage_source": "llm"
+}

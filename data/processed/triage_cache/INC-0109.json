@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the use of novel principals that have not been previously observed in the environment, indicating potential unauthorized access rather than legitimate scaling or CI activity.",
+  "evidence_hash": "5966288c",
+  "incident_id": "INC-0109",
+  "key_evidence": [
+    "Multiple actions performed by novel principals: 'AssumeRoleWithWebIdentity', 'user.authentication.auth_via_IDP', and 'GetObject'.",
+    "High risk score of 0.6 and risk rank of 106 indicate significant concern.",
+    "Events occurred within a short time frame (55 seconds) suggesting potential automation or scripted access."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using novel principals.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Enable logging and monitoring for all access attempts, especially from novel principals.",
+    "Set up alerts for unusual access patterns, particularly during off-hours."
+  ],
+  "triage_source": "llm"
+}

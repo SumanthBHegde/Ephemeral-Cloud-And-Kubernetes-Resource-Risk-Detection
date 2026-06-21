@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the presence of novel principals and the specific actions taken (GetObject) that suggest data access rather than scaling or CI operations. The lack of known ownership and the high risk score further indicate malicious intent.",
+  "evidence_hash": "ed6f9079",
+  "incident_id": "INC-0216",
+  "key_evidence": [
+    "Multiple GetObject actions were performed by a principal with a low privilege level.",
+    "The principal 'contractor-zhg4@partner.example' is novel and has not been seen in previous events.",
+    "The actions occurred within a short time frame, indicating a potential burst of activity that is atypical for the principal."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

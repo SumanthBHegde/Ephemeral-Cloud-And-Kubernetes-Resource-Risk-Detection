@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the actions were performed during off-hours, indicating unusual behavior for a human developer. Additionally, the public exposure of a service raises significant security concerns, which is atypical for legitimate CI/CD operations.",
+  "evidence_hash": "c7e5bc30",
+  "incident_id": "INC-0194",
+  "key_evidence": [
+    "The actions include 'pod_create', 'service_expose', and 'pod_delete' within a short time frame (less than 5 minutes).",
+    "The principal 'dev-user' has a high privilege level (2) and performed actions during off-hours (00:14 to 00:18 UTC).",
+    "The 'service_expose' action resulted in public exposure (public_exposure_flag: 1.0) of a service, indicating a potential security risk.",
+    "The incident has a high risk score (0.844) and is classified as 'CRITICAL' with a risk rank of 19."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for sensitive actions.",
+    "Enforce network policies to restrict public exposure of services unless explicitly required.",
+    "Set up alerts for off-hours activity by privileged users to detect potential misuse."
+  ],
+  "triage_source": "llm"
+}

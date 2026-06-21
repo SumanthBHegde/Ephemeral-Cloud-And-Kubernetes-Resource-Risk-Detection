@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the high novelty score and the rapid succession of instance launches (23 in 103 seconds) indicate behavior that deviates from typical autoscaling patterns, which would not normally exhibit such a high rate of instance creation in such a short time frame.",
+  "evidence_hash": "542e0bc6",
+  "incident_id": "INC-0275",
+  "key_evidence": [
+    "23 instances launched in a short time frame (103 seconds) by the same principal (service:autoscaling.amazonaws.com).",
+    "High novelty score (143) indicating unusual behavior for the principal.",
+    "All events have a tag completeness of 1.0, suggesting they are not part of a legitimate autoscaling process.",
+    "The events occurred during normal business hours (not off-hours)."
+  ],
+  "likely_intent": "Malicious resource hijacking through unauthorized instance launches.",
+  "mitre": [
+    "T1496",
+    "T1578"
+  ],
+  "recommended_guardrails": [
+    "Implement rate limiting on instance launches per principal.",
+    "Monitor and alert on unusual instance launch patterns.",
+    "Require multi-factor authentication for sensitive actions like instance creation."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,24 @@
+{
+  "confidence": 0.9,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the activity is concentrated in off-hours, lacks proper tagging, and involves a high number of privileged actions that deviate from normal behavior patterns for the 'human_dev' cohort.",
+  "evidence_hash": "1db78f0a",
+  "incident_id": "INC-0317",
+  "key_evidence": [
+    "The incident occurred during off-hours, indicating potential malicious intent.",
+    "The principal 'dev-user' has a high privilege level (2) and is creating multiple pods in a short time frame (21 events).",
+    "The tag completeness is 0.0, suggesting a lack of proper resource tagging and ownership, which is atypical for legitimate operations.",
+    "The event count of 21 pod creation actions in a short time frame indicates a burst of activity that is not typical for a human developer, especially during off-hours."
+  ],
+  "likely_intent": "Malicious resource hijacking or abuse of privileges.",
+  "mitre": [
+    "T1496",
+    "T1078",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for users in development environments.",
+    "Set up alerts for off-hours activity, especially for privileged actions like pod creation.",
+    "Enforce tagging policies for all resources to ensure accountability and traceability."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,22 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "While the actions are consistent with HPA autoscaling, the unusually high event count (25) and the high novelty score (1123) suggest this is not typical behavior for an autoscaler, indicating potential abuse of the service account.",
+  "evidence_hash": "3072c14e",
+  "incident_id": "INC-0256",
+  "key_evidence": [
+    "25 pod_create events detected in a short time frame (81.373 seconds) by the same principal.",
+    "The principal 'system:serviceaccount:kube-system:replicaset-controller' is associated with HPA autoscaler, but the event count and novelty are significantly high.",
+    "The risk score is 0.6, categorized as HIGH risk, indicating potential malicious activity."
+  ],
+  "likely_intent": "Malicious resource hijacking through excessive pod creation.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement rate limiting on pod creation requests.",
+    "Monitor and alert on unusual spikes in pod creation events.",
+    "Review and restrict permissions for service accounts to limit potential abuse."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions are concentrated in a short time frame with multiple 'GetObject' calls, indicating potential data exfiltration rather than legitimate scaling or CI activity. Additionally, the principal is novel and lacks a clear ownership context, further suggesting malicious behavior.",
+  "evidence_hash": "a3ed22bc",
+  "incident_id": "INC-0206",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by the same principal within a short time frame (74 seconds).",
+    "The principal 'contractor-3j4i' is associated with a novel identity and has a low privilege level.",
+    "The events occurred during off-hours, indicating potential malicious intent."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially during off-hours.",
+    "Enforce multi-factor authentication for all principal identities."
+  ],
+  "triage_source": "llm"
+}

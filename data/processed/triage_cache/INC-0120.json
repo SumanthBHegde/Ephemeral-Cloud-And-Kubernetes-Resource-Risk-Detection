@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the novelty of the principal and the off-hours timing of the events, which are atypical for legitimate automated processes.",
+  "evidence_hash": "8156a9a0",
+  "incident_id": "INC-0120",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'contractor-2tn4' within a short time frame.",
+    "The principal 'contractor-2tn4' has a high novelty score and is not recognized in the behavioral cohort.",
+    "The actions occurred during off-hours, indicating potential malicious intent."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict access controls and monitoring for novel principals.",
+    "Set up alerts for off-hours access attempts to sensitive resources.",
+    "Enforce tagging and ownership policies for cloud resources to ensure accountability."
+  ],
+  "triage_source": "llm"
+}

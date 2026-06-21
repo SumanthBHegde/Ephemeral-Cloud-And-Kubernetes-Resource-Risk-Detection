@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the use of a novel principal and the specific actions taken (role assumption and IDP authentication) which are not typical for autoscaling or CI processes. Additionally, the lack of known cohort and the high risk score further indicate malicious intent rather than legitimate activity.",
+  "evidence_hash": "3d26d5d2",
+  "incident_id": "INC-0325",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-7liw@partner.example) including 'AssumeRoleWithWebIdentity' and 'user.authentication.auth_via_IDP'.",
+    "The actions occurred within a short time frame (51 seconds) indicating a potential burst of activity.",
+    "The principal has a low privilege level and is not part of a known cohort, raising suspicion about the legitimacy of the actions."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using assumed roles and identity provider authentication.",
+  "mitre": [
+    "T1078",
+    "T1578",
+    "T1496"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access controls (RBAC) to limit the actions of contractors.",
+    "Monitor and alert on unusual authentication patterns, especially involving novel principals.",
+    "Establish a policy for identity provider (IdP) authentication that includes multi-factor authentication (MFA) for sensitive actions."
+  ],
+  "triage_source": "llm"
+}

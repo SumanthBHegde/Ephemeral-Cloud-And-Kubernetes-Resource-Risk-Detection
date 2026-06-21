@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the presence of novel principals and the lack of established behavioral patterns. The actions are concentrated in a short time frame, suggesting potential malicious intent rather than legitimate scaling or CI operations.",
+  "evidence_hash": "0467360a",
+  "incident_id": "INC-0222",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'contractor-62tu@partner.example' and 'okta|zdjhr7gh2g7vku2k6eqc'.",
+    "The actions occurred within a short time frame (65 seconds) with a high event count (5).",
+    "The principal 'contractor-62tu@partner.example' is marked as novel and has no prior activity context, indicating potential misuse of credentials."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts, especially those accessing sensitive data."
+  ],
+  "triage_source": "llm"
+}

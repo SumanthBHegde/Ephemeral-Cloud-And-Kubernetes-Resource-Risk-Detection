@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the off-hours timing of the events and the novelty of the principal involved, which suggests unauthorized access rather than legitimate scaling or CI activity.",
+  "evidence_hash": "967a051d",
+  "incident_id": "INC-0318",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by the same principal within a short time frame (7 events in 60 seconds).",
+    "The principal 'contractor-y5p2@partner.example' is marked as a novel principal, indicating potential unauthorized access.",
+    "The actions occurred during off-hours, raising suspicion about their legitimacy."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict access controls and monitoring for novel principals.",
+    "Set up alerts for off-hours access attempts to sensitive resources.",
+    "Enforce data access policies that limit exposure of sensitive data to authorized users only."
+  ],
+  "triage_source": "llm"
+}

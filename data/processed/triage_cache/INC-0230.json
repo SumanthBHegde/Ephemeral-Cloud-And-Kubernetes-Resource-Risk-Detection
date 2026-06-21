@@ -1,0 +1,25 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI runner burst because the actions occurred during off-hours, the principal has low tag completeness, and the high novelty score indicates behavior that deviates from expected patterns for CI runners.",
+  "evidence_hash": "7b7d984c",
+  "incident_id": "INC-0230",
+  "key_evidence": [
+    "46 instances of 'RunInstances' action detected in a short time frame (less than 5 minutes).",
+    "All events occurred during off-hours (04:47 - 04:48 UTC).",
+    "Principal ID 'AROAICTCL5HR4YYFQH7YG:ci-deploy' has low tag completeness (0.0), indicating potential misconfiguration or lack of oversight.",
+    "High novelty score (max novelty 45) suggests unusual behavior for the principal.",
+    "The events are clustered around the same resource IDs, indicating a focused attack."
+  ],
+  "likely_intent": "Resource hijacking through unauthorized instance launches.",
+  "mitre": [
+    "T1496",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit the actions of CI runners.",
+    "Set up resource quotas to prevent excessive instance launches.",
+    "Enable logging and monitoring for all instance creation actions to detect anomalies.",
+    "Conduct regular audits of principal permissions and tag completeness."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst because the actions were performed by a novel principal with no prior activity, and the timing is off-hours, which is atypical for legitimate scaling or CI operations.",
+  "evidence_hash": "99531802",
+  "incident_id": "INC-0337",
+  "key_evidence": [
+    "Multiple 'GetObject' actions were performed by a novel principal 'contractor-4yon' within a short time frame (65 seconds).",
+    "The principal 'contractor-4yon' is associated with a role that has not been seen before (novel principal).",
+    "The actions occurred during off-hours, indicating potential malicious intent."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the actions were performed during off-hours, the service was exposed publicly, and the principal has a high privilege level with no clear ownership or tagging of resources, indicating potential misuse rather than legitimate scaling activities.",
+  "evidence_hash": "ed90c50d",
+  "incident_id": "INC-0512",
+  "key_evidence": [
+    "The incident occurred during off-hours, indicating potential malicious intent.",
+    "The principal 'dev-user' has a high privilege level (2) and performed actions that exposed services publicly.",
+    "The actions included 'pod_create', 'service_expose', and 'pod_delete', with the 'service_expose' action resulting in public exposure (1.0).",
+    "The risk score is high (0.882), and the risk band is classified as CRITICAL."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for sensitive actions.",
+    "Enforce network policies to restrict public exposure of services unless explicitly required.",
+    "Set up alerts for off-hours activity by privileged users to detect potential misuse."
+  ],
+  "triage_source": "llm"
+}

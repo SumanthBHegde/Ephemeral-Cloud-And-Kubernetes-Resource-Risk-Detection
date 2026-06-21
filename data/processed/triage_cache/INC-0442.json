@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the novelty of the principal and the specific actions taken (multiple 'GetObject' calls) which suggest targeted data access rather than routine scaling or CI operations.",
+  "evidence_hash": "2fb30f73",
+  "incident_id": "INC-0442",
+  "key_evidence": [
+    "Multiple 'GetObject' actions were performed by a novel principal 'AROA3GZRLGPPLX3EXBS55:contractor-fqk4'.",
+    "The events occurred within a short time frame (66 seconds) indicating a potential burst of activity.",
+    "The principal 'contractor-fqk4@partner.example' is associated with a role that has not been previously observed in this context, indicating potential misuse."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all access to critical resources."
+  ],
+  "triage_source": "llm"
+}

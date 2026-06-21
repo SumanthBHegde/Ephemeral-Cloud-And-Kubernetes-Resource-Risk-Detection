@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the principal is novel and has a low privilege level, suggesting unauthorized access rather than legitimate scaling or CI activity. Additionally, the rapid succession of 'GetObject' actions raises suspicion of data exfiltration rather than normal operational behavior.",
+  "evidence_hash": "80cf9fb0",
+  "incident_id": "INC-0190",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a principal with low privilege level.",
+    "The principal 'contractor-rri2@partner.example' is marked as novel, indicating potential unauthorized access.",
+    "The events occurred within a short time frame (less than 1 minute) and included multiple data retrieval actions.",
+    "The risk score is high (0.6) and the risk rank is 134, indicating significant concern."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict access controls and monitoring for novel principals.",
+    "Set up alerts for multiple 'GetObject' actions in a short time frame.",
+    "Regularly review and audit access logs for unusual patterns."
+  ],
+  "triage_source": "llm"
+}

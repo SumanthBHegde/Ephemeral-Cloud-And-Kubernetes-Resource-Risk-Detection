@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the actions were performed by a novel principal during off-hours, and the service exposure was public with no ownership tags, indicating a lack of legitimate context for these actions.",
+  "evidence_hash": "b7dcb09b",
+  "incident_id": "INC-0025",
+  "key_evidence": [
+    "The principal 'dev-user' is a novel principal with no prior activity, indicating potential unauthorized access.",
+    "Actions occurred during off-hours, suggesting suspicious behavior outside normal operational times.",
+    "The 'service_expose' action resulted in public exposure with a flag of 1.0, indicating a high risk of unauthorized access.",
+    "The incident includes multiple actions (pod_create, service_expose, pod_delete) in a short time frame, indicating potential malicious intent rather than legitimate CI/CD activity."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for new or novel principals.",
+    "Enforce network policies to restrict public exposure of services unless explicitly required.",
+    "Set up alerts for off-hours activity, especially for privileged actions in sensitive namespaces."
+  ],
+  "triage_source": "llm"
+}

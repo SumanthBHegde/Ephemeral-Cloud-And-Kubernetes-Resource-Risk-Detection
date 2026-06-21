@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the use of novel principals and the specific actions taken (e.g., 'GetObject' on data resources) which are not typical for autoscaling or CI processes. The timing and nature of the actions suggest malicious intent rather than legitimate operational activity.",
+  "evidence_hash": "45bd7fd0",
+  "incident_id": "INC-0100",
+  "key_evidence": [
+    "Multiple actions performed by novel principals in a short time frame (4 events within 51 seconds).",
+    "Use of 'AssumeRoleWithWebIdentity' indicates potential impersonation of a legitimate user.",
+    "Actions include 'GetObject' on sensitive resources (part-0000.parquet, part-0001.parquet).",
+    "High risk score (0.6) and risk rank (100) indicate significant concern."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on the use of 'AssumeRoleWithWebIdentity' for novel principals.",
+    "Establish data access logging and anomaly detection for sensitive data access."
+  ],
+  "triage_source": "llm"
+}

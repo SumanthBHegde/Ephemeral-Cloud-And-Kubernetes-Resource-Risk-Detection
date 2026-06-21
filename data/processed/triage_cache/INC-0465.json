@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI runner burst because the actions taken by 'dev-user' included exposing a service publicly, which is a significant deviation from normal behavior for a human developer, especially given the high privilege level and the lack of tag completeness.",
+  "evidence_hash": "2df40f18",
+  "incident_id": "INC-0465",
+  "key_evidence": [
+    "The principal 'dev-user' has a high privilege level (2) and performed actions that exposed a service publicly (service_expose) with a public exposure flag of 1.0.",
+    "The actions occurred within a short time frame (less than 15 minutes) and included creating a pod, exposing a service, and deleting a pod, indicating potential malicious intent rather than benign autoscaling or CI activity.",
+    "The incident occurred during regular business hours (off_hours_flag is 0), which is atypical for legitimate CI/CD bursts that often occur during off-hours."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for users in the 'dev' namespace.",
+    "Set up alerts for any service exposure actions, especially those with a public exposure flag set to true.",
+    "Enforce tagging policies to ensure all resources are properly tagged for ownership and accountability."
+  ],
+  "triage_source": "llm"
+}

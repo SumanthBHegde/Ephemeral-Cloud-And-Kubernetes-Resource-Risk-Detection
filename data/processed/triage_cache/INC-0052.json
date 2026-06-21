@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI runner burst because the high novelty score and the rapid sequence of pod create/delete actions suggest potential malicious intent rather than normal CI/CD operations. The lack of expected tag completeness and the high risk score further indicate abnormal behavior.",
+  "evidence_hash": "97ac9f14",
+  "incident_id": "INC-0052",
+  "key_evidence": [
+    "40 events detected in a short time frame (12:32 to 12:40 UTC) indicating a burst of activity.",
+    "All actions were performed by the same service account (ci-runner-sa) within the 'ci' namespace.",
+    "The actions included multiple pod creations and deletions, which is atypical for a CI runner's expected behavior.",
+    "The principal has a high novelty score (up to 263), indicating unusual activity for this account."
+  ],
+  "likely_intent": "Resource hijacking through unauthorized pod management.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement stricter RBAC policies to limit pod management capabilities for service accounts.",
+    "Set resource quotas for the 'ci' namespace to prevent excessive resource consumption.",
+    "Enable logging and monitoring for unusual patterns of pod creation and deletion."
+  ],
+  "triage_source": "llm"
+}

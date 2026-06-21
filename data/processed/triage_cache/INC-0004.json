@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the use of novel principals and the specific actions taken (e.g., 'GetObject') that indicate potential data access rather than scaling operations. Additionally, the lack of established patterns for the principal suggests malicious intent rather than legitimate usage.",
+  "evidence_hash": "482b601f",
+  "incident_id": "INC-0004",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-u77q) with no prior activity in the system.",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', indicating potential data access.",
+    "The incident occurred within a short time frame (55 seconds) with multiple API calls, suggesting automated behavior.",
+    "The principal's novelty and lack of tag completeness raise concerns about legitimacy."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual API call patterns, especially from novel principals.",
+    "Enforce tagging policies to ensure all resources are properly tagged for ownership and accountability."
+  ],
+  "triage_source": "llm"
+}

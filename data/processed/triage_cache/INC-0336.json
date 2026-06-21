@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the novel principal's behavior, the off-hours timing, and the lack of prior legitimate activity associated with the principal. Legitimate bursts typically involve known principals and occur during expected operational hours.",
+  "evidence_hash": "930a554c",
+  "incident_id": "INC-0336",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-5665@partner.example) within a short time frame (47 seconds).",
+    "The actions include 'AssumeRoleWithWebIdentity' and 'GetObject', indicating access to resources without prior legitimate activity.",
+    "The principal is marked as novel, suggesting it has not been seen in previous legitimate contexts.",
+    "The event occurred during off-hours, raising suspicion about the legitimacy of the access."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources based on user roles.",
+    "Set up alerts for unusual access patterns, especially from novel principals or during off-hours.",
+    "Enforce multi-factor authentication for all user accounts, especially those accessing sensitive data."
+  ],
+  "triage_source": "llm"
+}

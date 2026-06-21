@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the novel principal's behavior and the nature of the actions taken (data retrieval) which are not typical for autoscaling or CI processes.",
+  "evidence_hash": "59b14ff1",
+  "incident_id": "INC-0519",
+  "key_evidence": [
+    "Multiple GetObject actions detected from the same principal within a short time frame.",
+    "The principal 'contractor-soz5' is associated with a novel identity and has low privilege level.",
+    "AssumeRoleWithWebIdentity action indicates potential misuse of identity federation.",
+    "High risk score of 0.6 and risk rank of 256 suggest significant concern."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all identity federation actions."
+  ],
+  "triage_source": "llm"
+}

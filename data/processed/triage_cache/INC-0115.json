@@ -1,0 +1,25 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the principal is novel and has a high novelty score, indicating it is not part of the expected behavioral cohort. Additionally, the actions are clustered in a short time frame during off-hours, which is atypical for legitimate operations.",
+  "evidence_hash": "8d81cb8c",
+  "incident_id": "INC-0115",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'contractor-vahj' within a short time frame.",
+    "The principal 'contractor-vahj' has a high novelty score and is not recognized in the behavioral cohort.",
+    "The actions occurred during off-hours, indicating potential malicious intent.",
+    "The 'AssumeRoleWithWebIdentity' action suggests an attempt to escalate privileges or access resources.",
+    "The event count of 6 within a 67-second window indicates a burst of activity that is atypical for the principal."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts, especially those accessing sensitive data."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the event count (31) is significantly higher than typical autoscaling behavior, and the principal's novelty score indicates a deviation from expected patterns, suggesting potential malicious intent rather than legitimate scaling activities.",
+  "evidence_hash": "2b7c20ac",
+  "incident_id": "INC-0056",
+  "key_evidence": [
+    "31 pod_create events detected in a short time frame (660 seconds)",
+    "All events originated from the same principal: system:serviceaccount:kube-system:replicaset-controller",
+    "The actions were performed in the 'prod' namespace with no public exposure",
+    "The principal is not novel and has a high novelty score (max 392) indicating unusual behavior for this account."
+  ],
+  "likely_intent": "Resource hijacking through excessive pod creation.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas for pod creation in the 'prod' namespace",
+    "Monitor and alert on unusual spikes in pod creation events",
+    "Review and restrict permissions for the 'replicaset-controller' service account."
+  ],
+  "triage_source": "llm"
+}

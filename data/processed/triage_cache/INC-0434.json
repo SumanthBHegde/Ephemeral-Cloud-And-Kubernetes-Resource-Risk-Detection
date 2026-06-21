@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the principal is novel and has no established behavior pattern in the system. The actions taken are indicative of data access rather than legitimate scaling or CI operations, which typically involve known principals and more predictable patterns.",
+  "evidence_hash": "30e1b7e8",
+  "incident_id": "INC-0434",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-74uk) with no prior activity in the system.",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', indicating potential data access and privilege escalation.",
+    "The events occurred within a short time frame (less than 1 minute) and involved the same principal, suggesting coordinated activity.",
+    "The risk score is high (0.6) and the risk rank is 239, indicating significant concern."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on actions performed by novel principals, especially those involving data access.",
+    "Establish a baseline of normal behavior for all principals and flag deviations from this baseline."
+  ],
+  "triage_source": "llm"
+}

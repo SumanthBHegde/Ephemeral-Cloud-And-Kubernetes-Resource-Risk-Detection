@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the novelty of the principal involved and the high risk score associated with the actions taken. The actions are concentrated in a short time frame, which is atypical for legitimate scaling or CI activities.",
+  "evidence_hash": "ed0efd59",
+  "incident_id": "INC-0215",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a principal with a low privilege level.",
+    "The principal 'contractor-q5xd@partner.example' is novel and has no prior activity context.",
+    "The actions occurred in a short time window (52 seconds) with a high event count (5).",
+    "The risk score is categorized as HIGH, indicating significant concern."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts, especially those with access to sensitive data."
+  ],
+  "triage_source": "llm"
+}

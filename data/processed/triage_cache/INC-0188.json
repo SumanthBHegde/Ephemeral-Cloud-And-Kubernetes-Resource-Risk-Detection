@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the involvement of a novel principal and the nature of the actions taken (data retrieval) which are not typical for autoscaling or CI processes.",
+  "evidence_hash": "a8bf6e14",
+  "incident_id": "INC-0188",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (okta|nnvagh3l5722gadvqqvb) within a short time frame (49 seconds).",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', indicating potential unauthorized access to resources.",
+    "The principal 'contractor-jc26@partner.example' shows novelty and is associated with a high-risk event score."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

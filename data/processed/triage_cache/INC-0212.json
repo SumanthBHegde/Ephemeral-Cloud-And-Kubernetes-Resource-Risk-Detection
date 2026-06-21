@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the off-hours timing and the use of a novel principal identity that is not typically associated with regular operations.",
+  "evidence_hash": "55ad805f",
+  "incident_id": "INC-0212",
+  "key_evidence": [
+    "Multiple 'GetObject' actions detected from the same principal within a short time frame.",
+    "The principal 'contractor-xc5z' is associated with a novel identity provider session.",
+    "The actions occurred during off-hours, indicating potential malicious intent."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially during off-hours.",
+    "Enforce multi-factor authentication for all principal identities."
+  ],
+  "triage_source": "llm"
+}

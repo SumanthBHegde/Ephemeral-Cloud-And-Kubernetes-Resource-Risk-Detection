@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the actions include multiple service exposures that are publicly accessible, which is atypical for standard autoscaling or CI processes. The high privilege level and the nature of the actions suggest malicious intent rather than legitimate development activity.",
+  "evidence_hash": "2a9a57a8",
+  "incident_id": "INC-0055",
+  "key_evidence": [
+    "Multiple pod creation events by the same principal (dev-user) in a short time frame (6 events within 1 hour).",
+    "Service exposure events indicate that the principal is making services publicly accessible (public_exposure_flag: 1.0).",
+    "The principal has a high privilege level (2) and is performing actions that could lead to resource hijacking.",
+    "The events occurred during regular working hours (off_hours_flag: 0)."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict network policies to limit public exposure of services.",
+    "Enforce role-based access control (RBAC) to restrict high privilege levels for non-administrative users.",
+    "Set up alerts for unusual patterns of service exposure and pod creation by privileged users."
+  ],
+  "triage_source": "llm"
+}

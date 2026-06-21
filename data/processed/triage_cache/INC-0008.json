@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions are performed by novel principals with no established behavior pattern, and the timing is off-hours, indicating potential malicious intent rather than legitimate scaling or CI activity.",
+  "evidence_hash": "5ee1b1a2",
+  "incident_id": "INC-0008",
+  "key_evidence": [
+    "Multiple actions performed by novel principals in a short time frame (5 events within 55 seconds).",
+    "Actions include 'GetObject' on sensitive resources (part-0000.parquet, part-0001.parquet, part-0002.parquet).",
+    "The principal 'contractor-wne6@partner.example' is novel and has no prior activity context.",
+    "The event occurred during off-hours (01:50-01:51 UTC)."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Enable logging and monitoring for unusual access patterns, especially during off-hours.",
+    "Set up alerts for actions performed by novel principals or accounts with no prior activity."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign CI runner burst because the rapid deletion of multiple pods (14 in total) within a short time frame (6 seconds) is atypical behavior for a CI runner, which typically operates with more predictable patterns. The high risk score and flagged events further indicate potential malicious intent rather than normal autoscaling or CI operations.",
+  "evidence_hash": "3365b3f5",
+  "incident_id": "INC-0125",
+  "key_evidence": [
+    "14 pod delete events recorded in a short time frame (6 seconds) by the same service account.",
+    "All events are from the 'ci' namespace, indicating a potential targeted attack on CI resources.",
+    "The principal 'system:serviceaccount:ci:ci-runner-sa' is associated with CI runners, but the burst of deletions is unusual and flagged as high risk."
+  ],
+  "likely_intent": "Malicious resource deletion by a compromised CI runner.",
+  "mitre": [
+    "T1496",
+    "T1078",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement rate limiting on pod deletion actions.",
+    "Monitor and alert on unusual patterns of resource deletions in the CI namespace.",
+    "Ensure proper access controls and permissions for service accounts, especially those used by CI runners."
+  ],
+  "triage_source": "llm"
+}

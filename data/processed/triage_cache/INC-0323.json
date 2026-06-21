@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions were performed by a novel principal with no established behavioral cohort, and the timing of the events falls outside normal operational hours, suggesting malicious activity rather than legitimate scaling or CI operations.",
+  "evidence_hash": "5df73188",
+  "incident_id": "INC-0323",
+  "key_evidence": [
+    "Multiple 'GetObject' actions were performed by a novel principal 'AROA45AF4BHQM7PME6LRV:contractor-eici' within a short time frame (56 seconds).",
+    "The principal 'contractor-eici@partner.example' authenticated via an IDP session just before the 'GetObject' actions occurred.",
+    "The actions occurred during off-hours, indicating potential malicious intent."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the principal is novel and has a low privilege level, indicating potential misuse of credentials rather than legitimate scaling or CI activity. The actions taken are focused on data retrieval, which is not typical for autoscaling or CI processes.",
+  "evidence_hash": "ed6095f2",
+  "incident_id": "INC-0521",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'contractor-kby6@partner.example' and 'AROAYU6EDHPL4TP5QJWFU:contractor-kby6'.",
+    "The 'AssumeRoleWithWebIdentity' action indicates potential misuse of identity federation.",
+    "The incident occurred within a short time frame (64 seconds) with multiple actions, suggesting a burst of activity that is atypical for the principal."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all identity federation actions."
+  ],
+  "triage_source": "llm"
+}

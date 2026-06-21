@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI runner burst because the high number of pod deletions and creations (72 events) in a short time frame is atypical for normal CI/CD operations, which usually have more predictable patterns. Additionally, the low tag completeness suggests that the resources may not be properly managed or monitored, raising suspicion of malicious intent.",
+  "evidence_hash": "feddfb5b",
+  "incident_id": "INC-0369",
+  "key_evidence": [
+    "72 events recorded in a short time frame (2835 seconds) indicating a burst of activity.",
+    "Actions include multiple pod deletions and creations by the same service account (ci-runner-sa) in the 'build' namespace.",
+    "The principal (ci-runner-sa) has a high novelty score (1159) suggesting unusual behavior for this account.",
+    "The tag completeness is low (0.0), indicating a lack of proper ownership or tagging for the resources involved."
+  ],
+  "likely_intent": "Resource hijacking through excessive pod manipulation.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas for the 'build' namespace to limit excessive resource consumption.",
+    "Enforce strict tagging policies for all resources to ensure proper ownership and accountability.",
+    "Monitor and alert on unusual activity patterns for service accounts, especially those with high novelty scores."
+  ],
+  "triage_source": "llm"
+}

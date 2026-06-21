@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the use of a novel principal with no established behavior pattern, and the actions taken (data retrieval) are not typical for autoscaling or CI processes.",
+  "evidence_hash": "1b8fb565",
+  "incident_id": "INC-0019",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-5ffa) with no prior activity in the system.",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', indicating potential data access and privilege escalation.",
+    "The event occurred during off-hours, raising suspicion about the legitimacy of the access."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on off-hours access attempts by novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

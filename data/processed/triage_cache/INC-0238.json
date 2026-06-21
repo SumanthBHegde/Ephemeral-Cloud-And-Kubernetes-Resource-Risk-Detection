@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the use of novel principals and the lack of established ownership or tagging for the resources accessed. The actions taken are not typical for legitimate scaling or CI processes, which would usually involve known principals and more predictable patterns.",
+  "evidence_hash": "7bc3d7bb",
+  "incident_id": "INC-0238",
+  "key_evidence": [
+    "Multiple actions performed by novel principals: 'contractor-nibr@partner.example' and 'okta|mrwrklprlkquqzqpjrvb'.",
+    "Actions include 'AssumeRoleWithWebIdentity' and 'GetObject', indicating potential resource access.",
+    "The event occurred within a short time frame (37 seconds) with multiple API calls, suggesting automated or scripted behavior."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using novel principals.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Enable logging and monitoring for all API calls to detect unusual patterns.",
+    "Establish a tagging policy for resources to ensure ownership is clear and auditable."
+  ],
+  "triage_source": "llm"
+}

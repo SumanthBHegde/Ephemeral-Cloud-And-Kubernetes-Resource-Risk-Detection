@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the high novelty score and the rapid succession of instance launches (19 in 121 seconds) indicate unusual behavior for the 'hpa_autoscaler' cohort, which typically does not exhibit such a high frequency of actions in a short time frame. Additionally, the presence of incomplete tagging raises concerns about the legitimacy of the actions taken.",
+  "evidence_hash": "dd06de45",
+  "incident_id": "INC-0296",
+  "key_evidence": [
+    "19 events of 'RunInstances' action detected from the same principal 'service:autoscaling.amazonaws.com'.",
+    "The events occurred within a short time frame (121 seconds) with a high novelty score (up to 180).",
+    "The principal has a low privilege level (0) and is not a novel principal, indicating potential misuse of a legitimate service account.",
+    "The tag completeness is varied, with some events showing incomplete tagging (0.8), suggesting potential misconfiguration or oversight."
+  ],
+  "likely_intent": "Malicious resource hijacking through unauthorized instance launches.",
+  "mitre": [
+    "T1496",
+    "T1578"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit the actions of service accounts.",
+    "Set quotas on the number of instances that can be launched by autoscalers to prevent abuse.",
+    "Enable logging and monitoring for unusual patterns of instance launches, especially during off-hours."
+  ],
+  "triage_source": "llm"
+}

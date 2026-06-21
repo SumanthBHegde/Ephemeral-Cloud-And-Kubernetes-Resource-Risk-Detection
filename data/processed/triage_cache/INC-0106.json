@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst because the principal is novel and not recognized, and the actions taken are indicative of credential misuse rather than legitimate scaling or CI operations.",
+  "evidence_hash": "65b3770a",
+  "incident_id": "INC-0106",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-xfnz@partner.example) within a short time frame.",
+    "The principal 'contractor-xfnz' has a novelty score of 1, indicating it is not a recognized user in the system.",
+    "Actions include 'AssumeRoleWithWebIdentity' and 'user.authentication.auth_via_IDP', which are often associated with credential abuse.",
+    "The event occurred during off-hours, which raises suspicion about the legitimacy of the access."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using compromised credentials.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1071"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Enable multi-factor authentication (MFA) for all user accounts.",
+    "Monitor and alert on unusual access patterns, especially during off-hours."
+  ],
+  "triage_source": "llm"
+}

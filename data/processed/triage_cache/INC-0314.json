@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the presence of a novel principal and the use of 'AssumeRoleWithWebIdentity', which is not typical for autoscaling or CI processes. Additionally, the actions were performed during off-hours, which is unusual for legitimate workloads.",
+  "evidence_hash": "73b2c318",
+  "incident_id": "INC-0314",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a principal with low privilege level.",
+    "The principal 'contractor-ve3n@partner.example' is novel and has not been seen in previous events.",
+    "The 'AssumeRoleWithWebIdentity' action indicates potential misuse of identity federation.",
+    "The event occurred during off-hours, raising suspicion about the legitimacy of the access."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using compromised credentials.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Enable multi-factor authentication (MFA) for all users, especially those with access to cloud resources.",
+    "Monitor and alert on unusual access patterns, especially during off-hours."
+  ],
+  "triage_source": "llm"
+}

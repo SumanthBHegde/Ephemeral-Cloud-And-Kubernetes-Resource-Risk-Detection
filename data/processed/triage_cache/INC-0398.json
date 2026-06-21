@@ -1,0 +1,23 @@
+{
+  "confidence": 0.8,
+  "disambiguation": "This incident is not a benign autoscaler or CI runner burst because the event count is unusually high (18 events) in a short time frame, indicating potential abuse rather than normal CI/CD operations. Additionally, the lack of controller ownership for some pod deletions suggests unauthorized actions rather than expected behavior from a CI runner.",
+  "evidence_hash": "9b0ad1f5",
+  "incident_id": "INC-0398",
+  "key_evidence": [
+    "18 events recorded in a short time frame (1307 seconds) indicating a burst of activity.",
+    "All events are associated with the same service account (ci-runner-sa) in the ci namespace.",
+    "The actions include multiple pod creation and deletion events, which are indicative of potential resource hijacking.",
+    "The risk score is high (0.6) and the risk rank is 223, suggesting significant concern over the activity."
+  ],
+  "likely_intent": "Resource hijacking through excessive pod creation and deletion.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas for the ci namespace to limit the number of pods that can be created.",
+    "Set up alerts for unusual activity patterns, such as rapid pod creation and deletion.",
+    "Review and restrict permissions for the ci-runner-sa service account to prevent unauthorized actions."
+  ],
+  "triage_source": "llm"
+}

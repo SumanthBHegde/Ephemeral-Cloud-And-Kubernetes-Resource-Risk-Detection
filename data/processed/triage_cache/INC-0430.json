@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the presence of novel principals performing multiple data access actions in a short time frame, which is atypical for standard autoscaling or CI operations. Additionally, the lack of established ownership and the high risk score further suggest malicious intent rather than legitimate operational activity.",
+  "evidence_hash": "14708e7e",
+  "incident_id": "INC-0430",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'AROA5ENNCEQ5MEEV4O5FJ:contractor-crmw'.",
+    "The actions occurred within a short time frame (65 seconds) indicating a potential burst of activity.",
+    "The principal 'contractor-crmw@partner.example' authenticated via IDP just before the data access actions.",
+    "The risk score is categorized as HIGH, indicating significant concern."
+  ],
+  "likely_intent": "Unauthorized data access and potential exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts, especially those accessing sensitive data."
+  ],
+  "triage_source": "llm"
+}

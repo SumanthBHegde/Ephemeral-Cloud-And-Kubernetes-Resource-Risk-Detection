@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the novel principal's lack of prior activity and the high-risk score associated with the actions taken. The actions are concentrated in a short time frame, which is atypical for legitimate scaling or CI operations.",
+  "evidence_hash": "67d037c1",
+  "incident_id": "INC-0113",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'contractor-tdet' within a short time frame.",
+    "The principal 'contractor-tdet' is marked as novel and has no prior activity context.",
+    "The actions occurred within a 57-second window, indicating a potential burst of activity.",
+    "The risk score is high (0.6) and the risk rank is 108, indicating significant concern."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Establish resource access logging and review mechanisms to detect unauthorized access."
+  ],
+  "triage_source": "llm"
+}

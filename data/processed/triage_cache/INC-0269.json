@@ -1,0 +1,24 @@
+{
+  "confidence": 0.9,
+  "disambiguation": "This is not a benign autoscaler or CI runner burst because the event count (15) is significantly higher than typical CI/CD activity, and the lack of tag completeness suggests that these resources may not be legitimate or authorized. Additionally, the high privilege level of the principal and the critical risk score indicate potential malicious intent rather than normal operational behavior.",
+  "evidence_hash": "792a1f69",
+  "incident_id": "INC-0269",
+  "key_evidence": [
+    "15 pod_create events detected from the same principal (dev-user) within a short time frame (less than 1 hour).",
+    "The principal (dev-user) has a high privilege level (2) and is part of the human_dev cohort.",
+    "The events occurred in the 'dev' namespace, which is typically used for development purposes, but the rapid creation of pods is unusual for this context.",
+    "The risk score is high (0.852) and the risk rank is critical (10).",
+    "The tag completeness for the resources is 0.0, indicating a lack of proper tagging and ownership."
+  ],
+  "likely_intent": "Resource hijacking or unauthorized resource creation.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas to limit the number of pods that can be created by a single principal.",
+    "Enforce strict tagging policies for all resources to ensure proper ownership and accountability.",
+    "Monitor and alert on unusual patterns of resource creation, especially from high-privilege accounts."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because it involves novel principals performing actions that are not typical for the expected workload, indicating potential unauthorized access rather than legitimate scaling activities.",
+  "evidence_hash": "73ad4f18",
+  "incident_id": "INC-0410",
+  "key_evidence": [
+    "Multiple actions performed by novel principals: 'contractor-zx27' and 'okta|vwrre2szjrytjaslwada'.",
+    "Actions include 'GetObject', 'AssumeRoleWithWebIdentity', and 'user.authentication.auth_via_IDP'.",
+    "The event occurred within a short time frame (49 seconds) with a high risk score of 0.6."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using novel principals.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Enable logging and monitoring for unusual access patterns.",
+    "Set up alerts for actions performed by novel or unexpected principals."
+  ],
+  "triage_source": "llm"
+}

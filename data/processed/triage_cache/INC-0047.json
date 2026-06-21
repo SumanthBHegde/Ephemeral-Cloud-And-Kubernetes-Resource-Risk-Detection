@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI runner burst because the event count (64) is significantly higher than typical CI/CD activity, and the novelty of the principal suggests it is not operating within expected parameters for a CI runner.",
+  "evidence_hash": "817e99f8",
+  "incident_id": "INC-0047",
+  "key_evidence": [
+    "64 pod_create events detected in a short time frame (less than 3 minutes).",
+    "All events are associated with the same service account: system:serviceaccount:ci:ci-runner-sa.",
+    "The events occurred in the 'build' namespace, which is typically used for CI/CD processes.",
+    "The principal has a high novelty score (up to 209), indicating unusual behavior for this service account."
+  ],
+  "likely_intent": "Malicious resource hijacking through excessive pod creation.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas for the 'build' namespace to limit pod creation.",
+    "Monitor and alert on unusual activity patterns for service accounts, especially those with high novelty scores.",
+    "Establish strict access controls and review service account permissions regularly."
+  ],
+  "triage_source": "llm"
+}

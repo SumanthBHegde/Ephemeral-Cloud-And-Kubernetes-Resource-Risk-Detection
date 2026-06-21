@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the presence of a novel principal and the specific actions taken (e.g., 'AssumeRoleWithWebIdentity' and multiple 'GetObject' calls) that suggest an attempt to access resources without prior legitimate activity.",
+  "evidence_hash": "57e1da3e",
+  "incident_id": "INC-0121",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a principal with a low privilege level.",
+    "The principal 'contractor-l5bd@partner.example' is marked as novel and has not been seen in previous events.",
+    "The actions occurred within a short time frame (59 seconds) and included an 'AssumeRoleWithWebIdentity' action.",
+    "The risk score is categorized as HIGH, indicating significant concern."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on novel principals performing sensitive actions.",
+    "Enforce multi-factor authentication for all access to cloud resources."
+  ],
+  "triage_source": "llm"
+}

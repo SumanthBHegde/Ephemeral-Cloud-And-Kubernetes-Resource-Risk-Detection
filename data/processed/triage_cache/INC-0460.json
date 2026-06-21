@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler burst because the high novelty score and the rapid instance launches indicate a deviation from normal behavior for the autoscaler, which typically operates within predictable patterns. Additionally, the timing of the events suggests potential malicious intent rather than a legitimate scaling operation.",
+  "evidence_hash": "319c7010",
+  "incident_id": "INC-0460",
+  "key_evidence": [
+    "20 instances were launched in a short time frame (119 seconds) by the same principal (service:autoscaling.amazonaws.com).",
+    "The principal has a high novelty score (up to 278) indicating unusual behavior.",
+    "The tag completeness is high (1.0) for most events, suggesting they are not part of a legitimate autoscaling process.",
+    "The events occurred during business hours, which is atypical for a legitimate autoscaler burst."
+  ],
+  "likely_intent": "Malicious resource hijacking through unauthorized instance launches.",
+  "mitre": [
+    "T1496",
+    "T1578"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit the actions of the autoscaling service.",
+    "Set up resource quotas to prevent excessive instance launches in a short time frame.",
+    "Monitor and alert on unusual patterns of instance launches, especially during business hours."
+  ],
+  "triage_source": "llm"
+}

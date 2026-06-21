@@ -1,0 +1,23 @@
+{
+  "confidence": 0.8,
+  "disambiguation": "While the actions are consistent with HPA autoscaling, the high novelty score and low tag completeness indicate that this behavior is not typical for the principal, suggesting potential malicious intent rather than a legitimate autoscale event.",
+  "evidence_hash": "4dfd13aa",
+  "incident_id": "INC-0035",
+  "key_evidence": [
+    "63 events recorded in a short time frame (less than 25 minutes) indicating a burst of activity.",
+    "Actions include multiple pod_create and pod_delete events from the same principal (system:serviceaccount:kube-system:replicaset-controller).",
+    "The principal is associated with the HPA autoscaler cohort, but the high novelty score (up to 133) suggests unusual behavior.",
+    "Tag completeness is low (0.0), indicating insufficient ownership or context for the resources involved."
+  ],
+  "likely_intent": "Resource hijacking through excessive pod creation and deletion.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas to limit the number of pods that can be created by a single service account.",
+    "Enhance monitoring and alerting for unusual patterns of pod creation and deletion.",
+    "Require complete tagging of resources to improve visibility and accountability."
+  ],
+  "triage_source": "llm"
+}

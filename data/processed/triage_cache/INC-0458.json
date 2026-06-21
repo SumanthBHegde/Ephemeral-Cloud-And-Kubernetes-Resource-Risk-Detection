@@ -1,0 +1,22 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI runner burst because the event count (16) and the rapid succession of pod create/delete actions (within seconds) indicate an abnormal pattern of behavior that exceeds typical CI/CD operations, suggesting potential resource hijacking rather than legitimate scaling or CI activity.",
+  "evidence_hash": "07abbad3",
+  "incident_id": "INC-0458",
+  "key_evidence": [
+    "16 events recorded in a short time frame (492 seconds) indicating a burst of activity.",
+    "The principal 'system:serviceaccount:ci:ci-runner-sa' is associated with a CI runner, but the high number of pod create/delete actions is unusual for normal CI operations.",
+    "The actions occurred in the 'build' namespace, which is typically used for CI/CD processes, but the volume and timing suggest potential abuse."
+  ],
+  "likely_intent": "Resource hijacking through excessive pod creation and deletion.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas for namespaces to limit the number of pods that can be created.",
+    "Monitor and alert on unusual patterns of pod creation and deletion, especially in CI/CD namespaces.",
+    "Review and restrict permissions for service accounts to limit their ability to create/delete resources."
+  ],
+  "triage_source": "llm"
+}

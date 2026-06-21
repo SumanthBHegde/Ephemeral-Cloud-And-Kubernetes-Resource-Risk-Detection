@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the presence of novel principals and the specific actions taken (multiple 'GetObject' calls) that suggest data access rather than scaling operations. Additionally, the lack of known ownership or tags for the resources accessed raises suspicion.",
+  "evidence_hash": "e5a4367c",
+  "incident_id": "INC-0343",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'AROAORCLTXNC7G5AWLGNO:contractor-voxt'.",
+    "The actions occurred within a short time frame (52 seconds) indicating a potential burst of activity.",
+    "The principal 'contractor-voxt@partner.example' is novel and has not been previously observed in the environment."
+  ],
+  "likely_intent": "Unauthorized data access and potential exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1041",
+    "T1496"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce tagging and ownership policies for all resources to ensure accountability."
+  ],
+  "triage_source": "llm"
+}

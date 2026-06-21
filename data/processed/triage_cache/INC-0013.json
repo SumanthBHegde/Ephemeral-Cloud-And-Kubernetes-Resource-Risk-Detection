@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the use of novel principals and the timing of the actions. Legitimate bursts typically involve known principals and occur during regular operational hours.",
+  "evidence_hash": "05a1a654",
+  "incident_id": "INC-0013",
+  "key_evidence": [
+    "The principal 'contractor-gmjc@partner.example' is a novel principal with no prior activity in the system.",
+    "Multiple 'GetObject' actions were performed in quick succession, indicating potential data exfiltration.",
+    "The actions were performed during off-hours, which is atypical for legitimate user behavior."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

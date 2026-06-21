@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the use of novel principals and the off-hours timing of the events, which are atypical for legitimate scaling activities.",
+  "evidence_hash": "b2d3e6e3",
+  "incident_id": "INC-0107",
+  "key_evidence": [
+    "Multiple actions performed by novel principals in a short time frame.",
+    "The principal 'contractor-voyr' is marked as novel and has no prior activity.",
+    "Actions include 'AssumeRoleWithWebIdentity' and 'user.authentication.auth_via_IDP', indicating potential credential misuse.",
+    "The event occurred during off-hours, raising suspicion."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using novel principals.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on the use of novel principals and off-hours access attempts.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

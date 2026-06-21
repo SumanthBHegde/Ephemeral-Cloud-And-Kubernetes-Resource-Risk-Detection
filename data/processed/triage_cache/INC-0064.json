@@ -1,0 +1,25 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the principal (dev-user) has a high privilege level and the events are clustered closely together in time without proper tagging, indicating potential abuse rather than legitimate scaling activity.",
+  "evidence_hash": "5fe7e6c4",
+  "incident_id": "INC-0064",
+  "key_evidence": [
+    "18 pod_create events detected from the same principal (dev-user) within a short time frame (less than 1 hour).",
+    "The principal (dev-user) has a high privilege level (2) and is part of the human_dev cohort.",
+    "The events occurred during regular business hours (not off-hours).",
+    "The tag completeness for the resources involved is 0.0, indicating a lack of proper ownership or tagging.",
+    "The risk score is high (0.850993329533245) and the risk band is classified as CRITICAL."
+  ],
+  "likely_intent": "Malicious resource hijacking or abuse of privileges.",
+  "mitre": [
+    "T1496",
+    "T1078",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for users in the dev cohort.",
+    "Enforce tagging policies for all resources to ensure proper ownership and accountability.",
+    "Set up alerts for unusual patterns of resource creation, especially from high-privilege accounts."
+  ],
+  "triage_source": "llm"
+}

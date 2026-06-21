@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the actions include multiple service exposures that opened resources to the public, which is atypical for standard autoscaling or CI processes. The principal's behavior shows a pattern of creating and exposing resources without clear ownership or tagging, indicating potential malicious intent.",
+  "evidence_hash": "61a79a81",
+  "incident_id": "INC-0250",
+  "key_evidence": [
+    "Multiple pod creation events by the same principal (dev-user) in a short time frame (6 events within 1 hour).",
+    "Service exposure events (2) that opened resources to public access, indicating potential unauthorized access.",
+    "High risk score (0.845) and critical risk band suggest malicious intent rather than benign activity."
+  ],
+  "likely_intent": "Resource hijacking through unauthorized service exposure.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit permissions for service exposure.",
+    "Set up alerts for unusual patterns of resource creation and exposure, especially for public access.",
+    "Enforce tagging policies for all resources to ensure ownership and accountability."
+  ],
+  "triage_source": "llm"
+}

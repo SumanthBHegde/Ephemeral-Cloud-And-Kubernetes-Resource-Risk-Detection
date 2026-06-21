@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the involvement of a novel principal and the use of 'AssumeRoleWithWebIdentity', which is atypical for legitimate autoscaling or CI processes. The actions are clustered in a short time frame, indicating potential malicious intent rather than normal operational behavior.",
+  "evidence_hash": "049509d9",
+  "incident_id": "INC-0220",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-rwer@partner.example) within a short time frame (49 seconds).",
+    "Use of 'AssumeRoleWithWebIdentity' indicates potential misuse of identity provider authentication.",
+    "High risk score (0.6) and risk band (HIGH) suggest significant concern regarding the nature of the actions."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using assumed roles and identity provider authentication.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access controls (RBAC) to limit the use of 'AssumeRoleWithWebIdentity'.",
+    "Monitor and alert on unusual authentication patterns from identity providers.",
+    "Establish a policy for tagging and ownership completeness to ensure accountability for resource access."
+  ],
+  "triage_source": "llm"
+}

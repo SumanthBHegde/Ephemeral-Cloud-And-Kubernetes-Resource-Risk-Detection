@@ -1,0 +1,23 @@
+{
+  "confidence": 0.9,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions occurred during off-hours, involved multiple rapid pod creations, and resulted in public exposure of services, which is atypical for legitimate development activities.",
+  "evidence_hash": "9e1cf124",
+  "incident_id": "INC-0515",
+  "key_evidence": [
+    "Multiple pod creation events (4) by the same principal (dev-user) within a short time frame (less than 20 minutes) during off-hours (21:50-22:10 UTC).",
+    "Service exposure events (2) that opened services to the public (public_exposure_flag: 1.0) also during off-hours.",
+    "High privilege level (2) for the principal involved in the actions, indicating potential for significant impact."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for service exposure actions.",
+    "Set up alerts for off-hours activity, especially for privileged actions like pod creation and service exposure.",
+    "Enforce network policies to restrict public access to services unless explicitly required."
+  ],
+  "triage_source": "llm"
+}

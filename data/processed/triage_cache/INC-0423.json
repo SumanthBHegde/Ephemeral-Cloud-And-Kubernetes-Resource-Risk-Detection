@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the use of a novel principal with low privilege, the timing of the events being off-hours, and the specific actions taken (multiple 'GetObject' calls) which suggest data access rather than scaling operations.",
+  "evidence_hash": "96fd0cbe",
+  "incident_id": "INC-0423",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'contractor-lt3d' within a short time frame.",
+    "The principal 'contractor-lt3d' is associated with a low privilege level and is a novel identity.",
+    "The actions occurred during off-hours, indicating potential malicious intent."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

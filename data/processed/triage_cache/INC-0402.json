@@ -1,0 +1,23 @@
+{
+  "confidence": 0.9,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the principal's novelty is significantly high, indicating unusual behavior for the autoscaling service. Additionally, the incomplete tagging and high event count in a short time frame suggest potential malicious intent rather than legitimate scaling activity.",
+  "evidence_hash": "40b9f167",
+  "incident_id": "INC-0402",
+  "key_evidence": [
+    "21 instances were launched in a short time frame (122 seconds) by the same principal (service:autoscaling.amazonaws.com).",
+    "The principal has a high novelty score (258) indicating unusual behavior.",
+    "The tag completeness for some events is below 1.0, suggesting incomplete resource tagging which is a risk factor.",
+    "The events occurred during regular business hours (off-hours flag is 0)."
+  ],
+  "likely_intent": "Malicious resource hijacking through unauthorized instance launches.",
+  "mitre": [
+    "T1496",
+    "T1578"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit the actions of the autoscaling service.",
+    "Set resource quotas to prevent excessive instance launches.",
+    "Enable logging and monitoring for unusual activity patterns in cloud resources."
+  ],
+  "triage_source": "llm"
+}

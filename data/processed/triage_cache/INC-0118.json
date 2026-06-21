@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because it involves novel principals performing actions that are not typical for the expected user behavior, especially during off-hours. The lack of tag completeness and the high risk score further indicate malicious intent rather than legitimate usage patterns.",
+  "evidence_hash": "145f37e6",
+  "incident_id": "INC-0118",
+  "key_evidence": [
+    "Multiple actions performed by novel principals (contractor-7cus and okta|zc5u7dcfifzk7ukcsd6u) within a short time frame.",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', which are indicative of potential resource hijacking.",
+    "The incident occurred during off-hours, raising suspicion about the legitimacy of the access."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using novel principals.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on the use of novel principals and off-hours access attempts.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

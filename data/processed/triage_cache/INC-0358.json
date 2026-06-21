@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the actions included exposing a service publicly without proper ownership or tagging, which is atypical for legitimate CI/CD processes. Additionally, the high privilege level and the sequence of actions suggest malicious intent rather than normal operational behavior.",
+  "evidence_hash": "94e1952c",
+  "incident_id": "INC-0358",
+  "key_evidence": [
+    "The principal 'dev-user' has a high privilege level (2) and performed actions that included creating a pod and exposing a service.",
+    "The service was exposed publicly (public_exposure_flag: 1.0) without proper ownership or tagging (tag_completeness: 0.0).",
+    "The actions occurred within a short time frame (event_count: 3) and included both creating and deleting resources, indicating potential manipulation."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for service exposure actions.",
+    "Enforce tagging policies for all resources to ensure ownership and accountability.",
+    "Set up alerts for public exposure of services, especially in development namespaces."
+  ],
+  "triage_source": "llm"
+}

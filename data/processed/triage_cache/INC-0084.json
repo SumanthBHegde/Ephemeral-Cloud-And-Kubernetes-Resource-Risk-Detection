@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst because the principal is novel and has no established behavior pattern, and the actions are concentrated in a short time frame, which is atypical for legitimate scaling or CI activities.",
+  "evidence_hash": "9916e72c",
+  "incident_id": "INC-0084",
+  "key_evidence": [
+    "The principal 'contractor-ptuo' is a novel principal with no prior activity, indicating potential unauthorized access.",
+    "Multiple 'GetObject' actions were performed in a short time frame (78 seconds) by the same principal, suggesting possible data exfiltration.",
+    "The events occurred during off-hours, which raises suspicion about the legitimacy of the access."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict access controls and monitoring for novel principals.",
+    "Set up alerts for unusual access patterns, especially during off-hours.",
+    "Enforce data access policies that limit the number of 'GetObject' actions per time window for non-privileged users."
+  ],
+  "triage_source": "llm"
+}

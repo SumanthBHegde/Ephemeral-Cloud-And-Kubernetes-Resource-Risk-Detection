@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst because the principal is novel and has no established behavior pattern, and the actions are concentrated in a short time frame, which is atypical for legitimate operations.",
+  "evidence_hash": "da46c5dc",
+  "incident_id": "INC-0218",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'contractor-xglc' within a short time frame.",
+    "The principal 'contractor-xglc' is marked as novel and has no prior activity in the system.",
+    "The actions occurred during off-hours, indicating potential malicious intent."
+  ],
+  "likely_intent": "Unauthorized data access and potential exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on novel principals performing high-frequency data access actions.",
+    "Enforce time-based access controls to restrict access during off-hours."
+  ],
+  "triage_source": "llm"
+}

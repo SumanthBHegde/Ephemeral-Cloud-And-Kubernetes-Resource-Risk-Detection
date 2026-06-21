@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler/CI burst because the principal is novel and has low privilege, and the actions are concentrated in a short time frame, suggesting potential unauthorized access rather than legitimate scaling or CI activity.",
+  "evidence_hash": "5e94cf48",
+  "incident_id": "INC-0447",
+  "key_evidence": [
+    "Multiple 'GetObject' actions observed from the same principal within a short time frame.",
+    "The principal 'contractor-65d6@partner.example' is novel and has low privilege level.",
+    "The actions occurred during regular business hours, indicating potential malicious intent rather than a benign autoscale or CI burst."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the involvement of a novel principal with no established behavior pattern, and the actions taken are indicative of data access rather than scaling operations.",
+  "evidence_hash": "d4ad429d",
+  "incident_id": "INC-0221",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-hrky) with no prior activity in the system.",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', indicating potential data access and privilege escalation.",
+    "The incident occurred during off-hours, raising suspicion about the legitimacy of the actions."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on off-hours access attempts by novel principals.",
+    "Enforce multi-factor authentication for all user accounts."
+  ],
+  "triage_source": "llm"
+}

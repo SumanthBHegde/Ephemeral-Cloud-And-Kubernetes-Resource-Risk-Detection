@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the volume of pod creation (49 events) is significantly higher than typical autoscaling behavior, which is usually more gradual. Additionally, the high novelty score of the principal indicates that this behavior is not consistent with its historical usage patterns.",
+  "evidence_hash": "6d9be21e",
+  "incident_id": "INC-0464",
+  "key_evidence": [
+    "49 pod_create events detected in a short time frame (less than 15 minutes).",
+    "All events are associated with the same principal: system:serviceaccount:kube-system:replicaset-controller.",
+    "The events occurred in the 'prod' namespace, indicating potential impact on production resources.",
+    "The principal has a high novelty score (up to 2116), suggesting unusual behavior for this service account."
+  ],
+  "likely_intent": "Resource hijacking through excessive pod creation.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas for pod creation in the production namespace.",
+    "Monitor and alert on unusual spikes in pod creation events.",
+    "Restrict permissions for service accounts to limit their ability to create resources."
+  ],
+  "triage_source": "llm"
+}

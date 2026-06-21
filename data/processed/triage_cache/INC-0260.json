@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign HPA autoscale or CI runner burst because the principal's novelty is significantly high (1144), indicating unusual behavior for a service account typically associated with autoscaling. Additionally, the high number of events (21) in a short time frame suggests potential abuse rather than legitimate scaling activity.",
+  "evidence_hash": "b5a8143e",
+  "incident_id": "INC-0260",
+  "key_evidence": [
+    "21 pod_create events detected in a short time frame (77 seconds) from the same principal.",
+    "Principal 'system:serviceaccount:kube-system:replicaset-controller' is associated with HPA autoscaler but shows high novelty (1144) indicating unusual behavior.",
+    "All events occurred during business hours (no off-hours flag set).",
+    "The risk score is high (0.6) and the risk rank is 174, indicating significant concern."
+  ],
+  "likely_intent": "Malicious resource hijacking through excessive pod creation.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas to limit the number of pods that can be created by a single service account.",
+    "Monitor and alert on unusual patterns of pod creation, especially from service accounts associated with autoscaling.",
+    "Review and restrict permissions for service accounts to only what is necessary for their function."
+  ],
+  "triage_source": "llm"
+}

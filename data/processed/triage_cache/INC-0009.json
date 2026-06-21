@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst because the principal is novel and has no established behavior pattern. The actions are concentrated in a short time frame and occur off-hours, which is atypical for legitimate scaling or CI activities.",
+  "evidence_hash": "99b2567e",
+  "incident_id": "INC-0009",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by a novel principal 'contractor-cz4p' within a short time frame (62 seconds).",
+    "The principal 'contractor-cz4p' is marked as novel and has no prior activity in the system, indicating potential misuse.",
+    "The actions occurred during off-hours, suggesting suspicious behavior.",
+    "The risk score is high (0.6) and the risk rank is 70, indicating significant concern."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict access controls and monitoring for novel principals.",
+    "Set up alerts for unusual access patterns, especially during off-hours.",
+    "Enforce data access policies that limit exposure of sensitive resources."
+  ],
+  "triage_source": "llm"
+}

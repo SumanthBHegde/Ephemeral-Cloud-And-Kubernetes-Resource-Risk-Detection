@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not appear to be a benign autoscaler or CI burst due to the off-hours timing and the novelty of the principal. Legitimate autoscaling or CI activities typically occur during regular business hours and involve known principals with established patterns of behavior.",
+  "evidence_hash": "099da39b",
+  "incident_id": "INC-0102",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by the same principal within a short time frame (75 seconds).",
+    "The principal 'contractor-tbjw' is marked as a novel principal, indicating potential unauthorized access.",
+    "The events occurred during off-hours, suggesting suspicious activity outside of normal operational times."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict access controls and monitoring for novel principals.",
+    "Set up alerts for off-hours access attempts to sensitive resources.",
+    "Enforce least privilege access policies to limit data exposure."
+  ],
+  "triage_source": "llm"
+}

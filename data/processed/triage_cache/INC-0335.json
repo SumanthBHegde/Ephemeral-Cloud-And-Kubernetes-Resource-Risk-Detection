@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the use of novel principals that have not been previously observed in the environment, and the actions taken are not typical for legitimate scaling or CI operations.",
+  "evidence_hash": "5313ed2e",
+  "incident_id": "INC-0335",
+  "key_evidence": [
+    "Multiple actions performed by novel principals: 'contractor-p3oe' and 'okta|gtl53uxbd537s3wpeg5h'.",
+    "Actions include 'GetObject' and 'AssumeRoleWithWebIdentity', indicating potential resource access and privilege escalation.",
+    "The incident occurred within a short time frame (less than 1 minute) with multiple API calls, suggesting automated or scripted behavior."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using novel principals.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on the use of novel principals and unusual API call patterns.",
+    "Enforce multi-factor authentication for all user accounts, especially for those accessing cloud resources."
+  ],
+  "triage_source": "llm"
+}

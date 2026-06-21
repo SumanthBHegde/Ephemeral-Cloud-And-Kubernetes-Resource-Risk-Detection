@@ -1,0 +1,22 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI runner burst because the service expose actions resulted in public exposure, which is atypical for legitimate CI runner operations. Additionally, the rapid succession of service exposes indicates potential malicious intent rather than normal CI activity.",
+  "evidence_hash": "aefa2390",
+  "incident_id": "INC-0364",
+  "key_evidence": [
+    "Multiple service expose actions were performed by the same principal (ci-runner-sa) in a short time frame.",
+    "The actions resulted in public exposure flags being set to true for several services.",
+    "The events occurred within a single namespace (prod) and were clustered closely in time."
+  ],
+  "likely_intent": "Unauthorized exposure of services via CI runner.",
+  "mitre": [
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement network policies to restrict public exposure of services unless explicitly required.",
+    "Monitor and alert on unusual patterns of service exposure by CI runners or other service accounts.",
+    "Review and limit the permissions of CI runner service accounts to prevent unauthorized actions."
+  ],
+  "triage_source": "llm"
+}

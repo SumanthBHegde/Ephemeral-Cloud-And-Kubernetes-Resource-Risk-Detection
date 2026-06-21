@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the actions were performed during off-hours, the principal has high privileges, and there is a significant public exposure of services, which is atypical for normal development activities.",
+  "evidence_hash": "26eb9c9c",
+  "incident_id": "INC-0080",
+  "key_evidence": [
+    "The actions occurred during off-hours, indicating potential malicious intent.",
+    "The principal 'dev-user' has a high privilege level (2) and performed actions that exposed services publicly (public_exposure_flag: 1.0).",
+    "The incident has a high risk score (0.845) and is classified as CRITICAL, indicating significant concern."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for sensitive actions.",
+    "Enforce network policies to restrict public exposure of services unless explicitly required.",
+    "Set up alerts for off-hours activity by privileged users."
+  ],
+  "triage_source": "llm"
+}

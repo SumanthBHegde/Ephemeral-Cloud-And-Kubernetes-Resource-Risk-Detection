@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the actions occurred during off-hours, indicating potential malicious intent. The high novelty score of the principal and the rapid succession of instance launches further suggest that this behavior deviates from normal autoscaling patterns.",
+  "evidence_hash": "f163e6ad",
+  "incident_id": "INC-0199",
+  "key_evidence": [
+    "15 instances were launched in a short time frame (89 seconds) by the principal 'service:autoscaling.amazonaws.com'.",
+    "All events occurred during off-hours (00:48-00:49 UTC).",
+    "The principal has a high novelty score (max 77) indicating unusual behavior for this service.",
+    "The tag completeness is 1.0, suggesting that the resources are properly tagged, but the context of the actions is suspicious."
+  ],
+  "likely_intent": "Malicious resource hijacking through unauthorized instance launches.",
+  "mitre": [
+    "T1496",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit the actions of the autoscaling service.",
+    "Set up alerts for unusual instance launch patterns, especially during off-hours.",
+    "Enforce resource quotas to prevent excessive resource consumption."
+  ],
+  "triage_source": "llm"
+}

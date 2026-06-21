@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the principal is novel and has a high novelty score, indicating it is likely not a legitimate user. Additionally, the actions are concentrated in a short time frame and occur off-hours, which is suspicious compared to typical autoscaling or CI activity that would be expected to follow a more predictable pattern.",
+  "evidence_hash": "080799cb",
+  "incident_id": "INC-0441",
+  "key_evidence": [
+    "Multiple 'GetObject' actions were performed by a novel principal (contractor-q2n6@partner.example) within a short time frame (59 seconds).",
+    "The principal 'contractor-q2n6@partner.example' is novel and has not been seen in previous events, indicating potential account compromise.",
+    "The actions occurred during off-hours, which is atypical for legitimate user behavior."
+  ],
+  "likely_intent": "Unauthorized data access and potential data exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1041",
+    "T1496"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on unusual access patterns, especially from novel principals.",
+    "Enforce multi-factor authentication for all user accounts, especially for external contractors."
+  ],
+  "triage_source": "llm"
+}

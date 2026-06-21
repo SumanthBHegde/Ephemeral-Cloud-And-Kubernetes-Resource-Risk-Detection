@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the use of a novel principal and the timing of the events, which occurred outside of normal operational hours. Additionally, the actions taken suggest an intent to access data rather than scale resources.",
+  "evidence_hash": "117d7700",
+  "incident_id": "INC-0119",
+  "key_evidence": [
+    "Multiple actions performed by a novel principal (contractor-mpwm) with no prior activity in the system.",
+    "Actions include 'AssumeRoleWithWebIdentity' and 'GetObject', indicating potential data access.",
+    "The event occurred during off-hours, raising suspicion about the legitimacy of the access."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Monitor and alert on off-hours access attempts by novel principals.",
+    "Enforce multi-factor authentication for all role assumptions."
+  ],
+  "triage_source": "llm"
+}

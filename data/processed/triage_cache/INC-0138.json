@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions taken (service exposure) are not typical for autoscaling or CI processes, which usually do not involve exposing services publicly. Additionally, the high novelty scores and the critical risk score indicate unusual behavior for the principal, suggesting malicious intent rather than legitimate activity.",
+  "evidence_hash": "d3ef17be",
+  "incident_id": "INC-0138",
+  "key_evidence": [
+    "Multiple 'pod_create' actions by the same principal 'dev-user' in a short time frame (9 events total).",
+    "Service exposure events occurred with a high public exposure flag (1.0) indicating potential malicious intent.",
+    "The principal 'dev-user' has a high privilege level (2) and is part of a human development cohort, which raises suspicion given the context of the actions taken."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement stricter access controls for privileged users.",
+    "Set up alerts for unusual service exposure events, especially during business hours.",
+    "Enforce tagging and ownership policies to ensure resources are properly managed and monitored."
+  ],
+  "triage_source": "llm"
+}

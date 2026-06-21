@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the actions include multiple service exposure events that make resources publicly accessible, which is atypical for standard autoscaling or CI operations. The high privilege level and the rapid succession of events further indicate potential malicious intent rather than legitimate usage.",
+  "evidence_hash": "0de6b33b",
+  "incident_id": "INC-0048",
+  "key_evidence": [
+    "Multiple 'pod_create' actions by the same principal 'dev-user' in a short time frame (9 events total).",
+    "Service exposure events with public exposure flags set to 1.0, indicating services were made publicly accessible.",
+    "The principal 'dev-user' has a high privilege level (2) and is part of the 'human_dev' cohort, which raises concerns about the intent behind the actions."
+  ],
+  "likely_intent": "Malicious exposure of services and potential resource hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict network policies to limit public exposure of services.",
+    "Set up alerts for unusual patterns of service exposure by privileged users.",
+    "Enforce least privilege access controls for user roles in the Kubernetes environment."
+  ],
+  "triage_source": "llm"
+}

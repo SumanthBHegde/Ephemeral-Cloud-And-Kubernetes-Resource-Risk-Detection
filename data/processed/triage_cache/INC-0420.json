@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst due to the use of a novel principal that has not been seen before, combined with the off-hours timing and the high risk score. Legitimate bursts typically involve known principals and are expected during operational hours.",
+  "evidence_hash": "a8924afc",
+  "incident_id": "INC-0420",
+  "key_evidence": [
+    "The principal 'contractor-zz6t@partner.example' is a novel principal with no prior activity.",
+    "Multiple 'GetObject' actions were performed in a short time frame (less than 1 minute).",
+    "The actions were performed during off-hours (01:01 UTC).",
+    "The risk score is categorized as HIGH, indicating significant concern."
+  ],
+  "likely_intent": "Unauthorized access to cloud resources using a novel principal.",
+  "mitre": [
+    "T1078",
+    "T1610",
+    "T1496"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources.",
+    "Enforce multi-factor authentication for all principals accessing cloud resources.",
+    "Set up alerts for unusual access patterns, especially from novel principals."
+  ],
+  "triage_source": "llm"
+}

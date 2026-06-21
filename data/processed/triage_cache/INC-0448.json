@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst because the principal is novel and has performed multiple data access actions in a short time frame, which is atypical behavior for legitimate autoscaling or CI processes that typically have predictable patterns and ownership.",
+  "evidence_hash": "e276e08e",
+  "incident_id": "INC-0448",
+  "key_evidence": [
+    "Multiple 'GetObject' actions performed by the same principal in a short time frame (7 events within 64 seconds).",
+    "The principal 'contractor-cnfu@partner.example' is marked as a novel principal, indicating potential unauthorized access.",
+    "The actions occurred during regular business hours (off_hours_flag = 0).",
+    "No privileged access was detected (any_privileged = false)."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict access controls and monitoring for novel principals.",
+    "Set up alerts for multiple data access requests from the same principal in a short time frame.",
+    "Enforce least privilege access policies to limit data exposure."
+  ],
+  "triage_source": "llm"
+}

@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI runner burst because it occurred during off-hours, has a high novelty score, and lacks proper tagging and ownership, which are critical indicators of legitimate CI/CD operations.",
+  "evidence_hash": "f8853e13",
+  "incident_id": "INC-0422",
+  "key_evidence": [
+    "48 RunInstances actions detected in a short time frame (5 seconds) during off-hours (01:11-01:12 UTC).",
+    "Principal ID 'AROAIL3VBZXHGSII6WQ5R:ci-deploy' is associated with a CI runner but shows high novelty in behavior (mean novelty of 21).",
+    "No tags or ownership completeness (tag_completeness is 0.0) for the resources involved, indicating potential misconfiguration or lack of oversight."
+  ],
+  "likely_intent": "Resource hijacking for unauthorized compute resources.",
+  "mitre": [
+    "T1496",
+    "T1078",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict tagging policies for all resources to ensure ownership and accountability.",
+    "Set up resource quotas to limit the number of instances that can be launched by CI runners during off-hours.",
+    "Monitor and alert on unusual patterns of resource usage, especially during off-hours."
+  ],
+  "triage_source": "llm"
+}

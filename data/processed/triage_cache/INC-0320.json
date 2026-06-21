@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident does not resemble a benign autoscaler or CI burst because the principal is novel and has no established behavior pattern, and the actions are concentrated in a short time frame, suggesting potential malicious intent rather than legitimate scaling or CI activity.",
+  "evidence_hash": "c95c6955",
+  "incident_id": "INC-0320",
+  "key_evidence": [
+    "Multiple 'GetObject' actions were performed by a principal with a novel identity (contractor-e4uk@partner.example) within a short time frame.",
+    "The actions occurred in a high-risk context with a risk score of 0.6 and a risk rank of 191.",
+    "The principal 'contractor-e4uk@partner.example' is marked as novel and has no prior activity, indicating potential misuse of credentials."
+  ],
+  "likely_intent": "Unauthorized data access or exfiltration.",
+  "mitre": [
+    "T1078",
+    "T1496",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit access to sensitive resources based on the principle of least privilege.",
+    "Monitor and alert on novel principal activity, especially during off-hours or unusual patterns.",
+    "Enforce multi-factor authentication (MFA) for all user accounts, especially for external contractors."
+  ],
+  "triage_source": "llm"
+}

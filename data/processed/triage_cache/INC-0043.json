@@ -1,0 +1,24 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler or CI burst because the number of pod creation events (18) in a short time frame is significantly higher than typical usage patterns for the 'human_dev' cohort, and the lack of tag completeness suggests potential malicious intent rather than legitimate activity.",
+  "evidence_hash": "f9d011a4",
+  "incident_id": "INC-0043",
+  "key_evidence": [
+    "The principal 'dev-user' has a high privilege level (2) and is creating multiple pods (18 events) in a short time frame (max exposure window of 840 seconds).",
+    "The events occurred during normal working hours (off_hours_flag is 0).",
+    "The principal is part of the 'human_dev' cohort, which indicates a legitimate user, but the high number of pod creations is unusual for this cohort.",
+    "The tag completeness is 0.0, indicating a lack of proper tagging and ownership, which is a red flag for potential misuse."
+  ],
+  "likely_intent": "Malicious resource hijacking or abuse of privileges.",
+  "mitre": [
+    "T1496",
+    "T1078",
+    "T1610"
+  ],
+  "recommended_guardrails": [
+    "Implement resource quotas to limit the number of pods a user can create in a given time frame.",
+    "Enforce strict tagging policies to ensure all resources are properly tagged and owned.",
+    "Monitor and alert on unusual patterns of resource creation, especially for privileged users."
+  ],
+  "triage_source": "llm"
+}

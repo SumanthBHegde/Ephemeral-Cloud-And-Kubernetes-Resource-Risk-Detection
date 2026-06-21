@@ -1,0 +1,23 @@
+{
+  "confidence": 0.85,
+  "disambiguation": "This incident is not a benign autoscaler burst because the principal shows significant behavioral novelty and the event count is unusually high for a typical autoscaling operation, indicating potential misuse rather than legitimate scaling activity.",
+  "evidence_hash": "d6b4ff23",
+  "incident_id": "INC-0136",
+  "key_evidence": [
+    "21 instances launched in a short time frame (111 seconds) by the same principal.",
+    "Principal 'service:autoscaling.amazonaws.com' is associated with HPA autoscaler but shows high novelty in behavior (mean novelty of 20).",
+    "All events have a tag completeness of 1.0, indicating proper tagging, yet the context suggests unusual activity.",
+    "The event occurred during business hours (not off-hours), which is atypical for legitimate autoscaling events."
+  ],
+  "likely_intent": "Malicious resource hijacking through unauthorized instance launches.",
+  "mitre": [
+    "T1496",
+    "T1578"
+  ],
+  "recommended_guardrails": [
+    "Implement strict IAM policies to limit the actions of the autoscaling service.",
+    "Set up alerts for unusual instance launch patterns or high-frequency API calls from the autoscaling service.",
+    "Enforce resource quotas to prevent excessive resource allocation by any single principal."
+  ],
+  "triage_source": "llm"
+}

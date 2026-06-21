@@ -1,0 +1,23 @@
+{
+  "confidence": 0.9,
+  "disambiguation": "This is not a benign autoscaler or CI burst because the actions occurred during off-hours, the principal has a high privilege level, and there is a significant number of pod creations in a short time, indicating potential malicious intent rather than legitimate scaling activities.",
+  "evidence_hash": "f067bd6b",
+  "incident_id": "INC-0127",
+  "key_evidence": [
+    "Multiple pod_create actions (4) by the same principal (dev-user) within a short time frame during off-hours (06:35 to 07:41 UTC).",
+    "Service exposed (service_expose) by the same principal (dev-user) during off-hours, with public exposure flag set to true.",
+    "High privilege level (2) for the principal dev-user, indicating elevated permissions."
+  ],
+  "likely_intent": "Malicious resource exposure and potential service hijacking.",
+  "mitre": [
+    "T1496",
+    "T1610",
+    "T1078"
+  ],
+  "recommended_guardrails": [
+    "Implement strict role-based access control (RBAC) to limit privileges for dev-user.",
+    "Set up alerts for off-hours activity, especially for privileged actions.",
+    "Enforce network policies to restrict public exposure of services unless explicitly required."
+  ],
+  "triage_source": "llm"
+}
