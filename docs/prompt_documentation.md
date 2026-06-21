@@ -915,7 +915,7 @@ Build the full Stage 6 module:
 - **`modules/dashboard/frontend/`** — React frontend (copied from threat-intel, adapted):
   - `src/App.jsx` — 8 routes (no login): `/` (Dashboard), `/app/findings`, `/app/resources`,
     `/app/analytics`, `/app/chat`, `/app/reports`, `/app/notifications`, `/app/settings`
-  - `AppShell.jsx` — rebranded to **EphemeraLens**, nav: Overview (Dashboard, Risk Findings, Resource
+  - `AppShell.jsx` — rebranded to **Sentinel**, nav: Overview (Dashboard, Risk Findings, Resource
     Explorer, Analytics) · Intelligence (AI Risk Analyst, Reports) · Workspace (Notifications,
     Settings)
   - `src/lib/data.jsx` — DataProvider context + useData() hook, fetches all 6 JSON files on mount
