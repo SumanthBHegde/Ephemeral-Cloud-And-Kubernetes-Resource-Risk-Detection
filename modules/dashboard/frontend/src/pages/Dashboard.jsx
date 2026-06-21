@@ -40,7 +40,7 @@ function DashboardBody({ data, navigate }) {
     <div className="space-y-6">
       <PageHeader
         title="Resource Risk Dashboard"
-        description="Live overview of ephemeral cloud and Kubernetes resource risk."
+        description="Near-real-time risk across ephemeral cloud & K8s assets — replay the pipeline detecting an incident before a daily scan would."
         breadcrumb={["Console", "Dashboard"]}
       >
         <Button variant="outline" size="sm" onClick={() => window.location.reload()}>

@@ -32,12 +32,17 @@ function Panel({ title, description, children, className }) {
 function AnalyticsBody({ metrics }) {
   const cohortRadar = metrics.cohort_distribution.map((c) => ({ name: c.name, value: c.value }));
   const funnel = metrics.alert_fatigue;
+  // reliability curve: predicted probability vs observed malicious rate per bin.
+  // `ideal` is the y=x diagonal — points on it mean a 0.8 score really is ~80% malicious.
+  const calibration = (metrics.calibration || []).map((c) => ({
+    predicted: c.predicted, observed: c.observed, ideal: c.predicted, n: c.n,
+  }));
 
   return (
     <div>
       <PageHeader
         title="Risk Analytics"
-        description="Distributions and trends across the detection pipeline."
+        description="Distributions, trends, and calibration across the detection pipeline — including the alert-fatigue funnel and risk-score reliability."
         breadcrumb={["Console", "Analytics"]}
       />
 
@@ -119,6 +124,26 @@ function AnalyticsBody({ metrics }) {
             </BarChart>
           </ResponsiveContainer>
         </Panel>
+
+        {calibration.length > 0 && (
+          <Panel title="Risk Calibration" description="Predicted risk vs observed malicious rate — a 0.8 score means ~80% malicious.">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={calibration} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} />
+                <XAxis type="number" dataKey="predicted" domain={[0, 1]} {...axisProps}
+                  tickFormatter={(v) => v.toFixed(1)} />
+                <YAxis type="number" domain={[0, 1]} {...axisProps} width={36}
+                  tickFormatter={(v) => v.toFixed(1)} />
+                <Tooltip content={<ChartTooltip />} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Line type="monotone" dataKey="ideal" name="Perfect calibration" stroke={CHART.grid}
+                  strokeWidth={1.5} strokeDasharray="5 4" dot={false} isAnimationActive={false} />
+                <Line type="monotone" dataKey="observed" name="Observed" stroke={CHART.primary}
+                  strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </Panel>
+        )}
       </div>
     </div>
   );

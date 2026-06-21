@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   LayoutGrid, List, X, ShieldAlert, Bot, Clock, Boxes, Users, Server,
-  GitBranch, Activity, ArrowRight,
+  GitBranch, Activity, ArrowRight, Camera,
 } from "lucide-react";
 import { useData } from "../lib/data";
 import { PageHeader, EmptyState, PageState } from "../components/shared";
@@ -252,6 +252,28 @@ function FindingDrawer({ inc, onClose }) {
             <Chips icon={Boxes} items={inc.namespaces} empty="no namespaces" />
             <Chips icon={Server} items={inc.resource_ids} empty="no resources" />
           </Section>
+
+          {/* forensic snapshot — resource state captured at detection time, so the
+              incident survives the resource's disappearance ("gone before triage") */}
+          <div className="rounded-card border border-warning/30 bg-warning/5 p-4">
+            <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-warning">
+              <Camera className="h-4 w-4" /> Forensic Snapshot
+            </div>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Resource state captured at detection time — preserved even though the ephemeral
+              asset has since been terminated.
+            </p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+              <Detail label="Captured at" value={fmtTime(inc.end_time)} mono />
+              <Detail label="Resources observed" value={(inc.resource_ids || []).filter(Boolean).length || "—"} />
+              <Detail label="Exposure window" value={inc.max_exposure_window_s ? fmtDuration(inc.max_exposure_window_s) : "—"} />
+              <Detail label="Privileged in scope" value={inc.any_privileged ? "yes" : "no"} />
+              <Detail label="Max privilege" value={inc.max_privilege_level} />
+              <Detail label="Public exposure" value={inc.max_exposure_window_s > 0 ? "yes" : "no"} />
+              <Detail label="Tripwires fired" value={inc.tripwire_hits} />
+              <Detail label="Severity floor" value={inc.severity_floor} />
+            </div>
+          </div>
 
           {/* member events */}
           <Section title={`Top Member Events (by p_event)`}>

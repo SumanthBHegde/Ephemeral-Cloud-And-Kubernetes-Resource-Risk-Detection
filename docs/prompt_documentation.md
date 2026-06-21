@@ -980,3 +980,122 @@ Build the full Stage 6 module:
   design polish. Dev server is live and ready for manual testing.
 
 ---
+
+## Phase 8 - Showcasing & Polish Pass (Deploy + Confusability + §19 Extras)
+
+### Goal
+
+Hackathon is judged by **recorded video + public GitHub repo**. The stated fear: *"judges won't grasp
+why it's hard."* The pipeline (Stages 0–6) is complete and top-tier, but the showcasing layer is
+missing. Add: (1) Vercel deploy config + autoplay for the live link; (2) the confusability figure
+(the single strongest artifact proving the problem is hard); (3) root README with thesis/ablation
+above the fold; (4) design §19 extras (calibration plot + forensic-snapshot view) + per-page captions.
+Feedback-loop TP/FP buttons **deliberately cut** (non-functional buttons read as fake to judges).
+
+---
+
+### Prompt (Planning Q&A)
+
+```
+We have 1 day left and the hackathon is judged by recorded video + GitHub repo. The backend is
+top-tier, but judges need to understand why the problem is hard. Let's lock the showcasing scope.
+
+1. Three ideas: autoplay replay, interactive tour, public deploy. Feasibility?
+2. Confusability figure — readme PNG or live dashboard panel?
+3. §19 extras (calibration, forensic, feedback) — which are worth building vs. cutting?
+4. GitHub deployment — Vercel, GitHub Pages, or custom?
+
+Ask clarifying questions, then build the tight-scope plan.
+```
+
+**Purpose:** Lock the showcasing scope to fit ~1 day, prioritize by impact, avoid polish trap.
+
+**Key decisions locked via user Q&A:**
+- **Deploy:** Vercel (clean SPA rewrite, static JSON works immediately)
+- **Autoplay:** YES — simple 15-line change, high impact for recorded demo
+- **Confusability:** README PNG only (no label leak, smaller scope than live panel)
+- **§19 extras:** Calibration plot + Forensic-snapshot + Captions IN; Feedback-loop buttons OUT
+- **Sequencing:** Tier 1 (deploy+autoplay) → Tier 2 (confusability+README) → Tier 3 (calibration+forensic+captions)
+
+---
+
+### Implementation (Plan-mode Q&A + Build)
+
+```
+Tier 1: vercel.json SPA rewrite + ReplayPanel autoplay (15 min)
+Tier 2: confusability.py figure + root README (3 hours)
+Tier 3: calibration export + Analytics panel + forensic block + captions (3 hours)
+Verify: npm build, npm preview, context.md history entry.
+```
+
+**Purpose:** Deliver showcasing artifacts in risk-ordered tiers so nothing critical is blocked.
+
+**Implemented:**
+- **Tier 1a — Vercel SPA rewrite:** `modules/dashboard/frontend/vercel.json` with route rewrite
+  `/(.*)` → `/index.html` *except* `/data/*` (guards against JSON shadow bug). No `vite.config`
+  change needed; `base` defaults to `/`, data fetch is already `import.meta.env.BASE_URL`-aware.
+  Deploy: Root Directory = `modules/dashboard/frontend`, framework Vite, build `npm run build`.
+  All 6 data JSON files committed → instant populated dashboard.
+
+- **Tier 1b — Autoplay replay:** `components/ReplayPanel.jsx` `useEffect` now calls `engine.reset()`
+  then `engine.play()` on mount. Demo window before/after detection payoff reached without a click.
+
+- **Tier 2a — Confusability figure:** New `modules/dashboard/figures/confusability.py` → 
+  `docs/figures/confusability.png`. Left panel: burst-rate distributions (crypto 10.82 vs legit
+  13.93, heavy overlap). Right panel: context features (tag_completeness 0.00 vs 0.54, off_hours
+  0.83 vs 0.08, spot 0.50 vs 0.00). **Finding:** raw duration differs (attacker ~70–85 min, autoscaler
+  ~2 min), but **burst_rate** is the honest confusable signal (per-window, nearly identical).
+  Figure uses global distributions (9,857 events) + real confusable pairs from simulator's `pair_id`.
+  Labels read at build time only; PNG is purely static.
+
+- **Tier 2b — Root README created** (none existed): Thesis → confusability figure → architecture
+  → **ablation table above fold** → run/deploy → **"Honest evaluation"** section pre-empting the
+  two judge critiques (cohort=unknown "circularity" + 68% band vs 96% precision@50).
+
+- **Tier 3a — Calibration plot:** `build.py` gained `build_calibration()` (self-contained, inlined
+  label loader, no detector import). Joins `events_scored.p_event` with `is_risky` ground truth,
+  buckets into 10 bins, emits `{p_mid, predicted, observed, n}` → `metrics.json["calibration"]`.
+  **No per-event label reaches client.** Reliability near-perfect (predicted ≈ observed). New panel
+  in `Analytics.jsx` with y=x diagonal reference. **Design decision:** decoupled `build.py` from
+  detector import graph after catching the `pyod` transitive risk.
+
+- **Tier 3b — Forensic-snapshot:** New block in `RiskFindings.jsx` drawer rendering captured-at-
+  detection resource state (fields already exported: `resource_ids`, `exposure_window_s`, 
+  `any_privileged`, `tripwire_hits`, `severity_floor`). Framed as surviving resource disappearance.
+
+- **Tier 3c — Per-page captions:** Dashboard + Analytics sharpened; Chat left as-is (already
+  honestly labeled "cached", not a live agent).
+
+**Verified:**
+- `python -m modules.dashboard.build` → `calibration` key exported; confusability PNG renders
+  (bursts overlap left, separate right); `npm install` clean; `npm run build` green; `npm run
+  preview` serves `/app` (200), `/app/findings` (200), `/data/metrics.json` (200).
+- **Pre-existing caveat:** `pyod` not installed; stage2/stage5 tests error (16 passed, 1 failed, 33
+  errors all `ModuleNotFoundError`). Dashboard build path does not depend on pyod → runs clean.
+  Run `pip install pyod` for green suite.
+- Frontend build + preview all green; deep links work; calibration in served JSON.
+
+---
+
+## Result of Phase 8
+
+- **Deploy config:** `vercel.json` SPA rewrite (excludes `/data/*`), ready to push to public GitHub
+  + import to Vercel (Root Directory `modules/dashboard/frontend`).
+- **Live replay:** Autoplays on Dashboard mount; reaches before/after detection annotation without
+  a click (critical for recorded demo).
+- **Confusability figure:** Static PNG (`docs/figures/confusability.png`) embedded in README. Proves
+  problem is hard: bursts indistinguishable by volume, separated only by context. Built from real
+  data with simulator's ground-truth pairing.
+- **Root README:** Created from scratch with thesis, architecture, ablation table above the fold,
+  confusability figure, run/deploy steps, honest pre-emption of judge critiques.
+- **§19 extras delivered:** Calibration plot (near-perfect reliability, new Analytics panel) +
+  Forensic-snapshot block (pure presentation) + sharpened captions. Feedback-loop buttons cut
+  (non-functional buttons read as fake).
+- **Documentation:** context.md updated with Phase 8 chronological entry (detailed rationale,
+  decoupling decision, caveat on pyod), prompt_documentation.md this section.
+- **Remaining:** Create Vercel project + paste live URL into README. Visual QA (light/dark themes,
+  calibration panel, forensic block). Optional: `pip install pyod` for clean 50/50 pytest.
+- **Scope delivered in ~1 day:** Tier 1 (15 min) + Tier 2 (3h) + Tier 3 (3h) + verification,
+  all on-track for video recording + public repo push.
+
+---

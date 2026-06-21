@@ -486,6 +486,61 @@ green (2350 modules, only a >500 kB chunk advisory from recharts); `npm run dev`
 and `/data/metrics.json` (200). Visual QA in-browser (handoff §8, both themes) is the remaining manual
 check.
 
+### 2026-06-21 — Showcasing/polish pass (deploy + confusability + §19 extras)
+Hackathon is judged by **recorded video + public GitHub repo** with ~1 day left; the stated risk is
+"judges won't grasp why it's hard." This pass added the showcasing layer (no new pipeline stages). Plan
+file: `~/.claude/plans/ok-now-lets-plan-validated-duckling.md`. Scope decided via Q&A; feedback-loop
+TP/FP buttons **deliberately cut** (non-functional buttons read as fake to a judge).
+
+Delivered:
+- **Vercel deploy config** — `modules/dashboard/frontend/vercel.json` rewrites SPA routes to
+  `index.html` *except* `/data/*` (so the static JSON isn't shadowed by the fallback — a real bug if
+  the rewrite were unguarded). Deploy at root: Vite `base` is `/` and `lib/data.jsx` already fetches via
+  `import.meta.env.BASE_URL`, so no `vite.config` change. Root Directory = `modules/dashboard/frontend`.
+  All 6 data JSON files are committed, so the static deploy has live data immediately. `.env` is
+  gitignored and absent from history (verified) — safe to go public.
+- **Replay autoplays on mount** — `components/ReplayPanel.jsx` `useEffect` now calls `engine.reset()`
+  then `engine.play()` so the demo-window before/after payoff is reached without a click (it's a JS
+  interval, not `<video>`, so no autoplay-block).
+- **Confusability figure (the headline artifact)** — new `modules/dashboard/figures/confusability.py`
+  reads `events_enriched.parquet` + `labels.jsonl` (labels at build time only, never exported) and
+  writes `docs/figures/confusability.png`: left = crypto vs legit `burst_rate` distributions overlap
+  (10.8 vs 13.9, wide-overlap → indistinguishable to a detector); right = the context features that
+  separate them (tag_completeness 0.00 vs 0.54, off_hours 0.83 vs 0.08, spot 0.50 vs 0.00). The
+  simulator already ships explicit `crypto_burst↔legit_autoscale` twins keyed by `pair_id`. **Finding:**
+  raw wall-clock burst *duration* differs systematically (attacker drips ~70–85 min vs autoscaler ~2
+  min) — the honest confusable signal is **burst_rate** (per-window), which is near-identical, NOT raw
+  span. The figure is framed on burst_rate accordingly.
+- **Root `README.md` created** (none existed) — thesis one-liner → confusability figure → architecture
+  diagram → **ablation table** above the fold → run/deploy steps → an "Honest evaluation" section
+  pre-empting the two critiques a judge will raise (the cohort=unknown "circularity" and the 68% band
+  precision vs 96% precision@50).
+- **§19 calibration plot** — `build.py` gained `build_calibration()` (self-contained: loads
+  `labels.jsonl` inline, joins `events_scored.p_event`, buckets into reliability bins, emits aggregated
+  `{p_mid,predicted,observed,n}` as `metrics.json["calibration"]` — **no per-event label reaches the
+  client**). Reliability is near-perfect (predicted≈observed: 0.045≈0.045, 0.39≈0.39, 0.78≈0.79,
+  0.999≈0.992). New "Risk Calibration" panel in `pages/Analytics.jsx` (observed curve vs y=x diagonal).
+  **Decoupling note:** first draft imported `_load_labels` from `detection.evaluate`, which transitively
+  pulls `anomaly.py`→`pyod` into the dashboard build — fragile. Inlined the 4-line label loader instead;
+  `build.py` no longer depends on the detector's import graph.
+- **§19 forensic-snapshot view** — new "Forensic Snapshot — captured at detection time" block in the
+  `pages/RiskFindings.jsx` triage drawer, framed as surviving the resource's disappearance. Pure
+  presentation of already-exported incident fields (`resource_ids`, `max_exposure_window_s`,
+  `any_privileged`, `max_privilege_level`, `tripwire_hits`, `severity_floor`) — no new export.
+- **Per-page captions** sharpened (Dashboard, Analytics). The AI Risk Analyst (Chat) page is already
+  honestly framed ("Grounded in Stage-5 triage narratives · offline / cached", "gpt-4o-mini (cached)"
+  badge) — left as-is, not dressed up as a live agent.
+
+**Verified:** `python -m modules.dashboard.build` re-exports with `calibration` (5 bins); confusability
+PNG renders correctly (bursts overlap left, separate right); `npm install` clean (0 vuln); `npm run
+build` green; `npm run preview` serves `/app` 200, `/app/findings` 200, `/data/metrics.json` 200 with
+`calibration` present. **Pre-existing env caveat (NOT introduced here):** `pyod` is not installed in
+this environment, so stage2/stage5 tests error on import (`ModuleNotFoundError: pyod`) — 16 passed, 1
+failed, 33 errors, all the same missing-dep. The dashboard build path does not import pyod, so it runs
+clean. To get a green suite, `pip install pyod`. **Remaining manual:** in-browser visual QA of the new
+calibration panel + forensic block in **both themes**; create the Vercel project and paste the live URL
+into README + the demo-link placeholders.
+
 ## 4. Naming history (so nobody resurrects an old path)
 
 ```

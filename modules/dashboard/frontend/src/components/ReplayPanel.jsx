@@ -23,6 +23,10 @@ export default function ReplayPanel({ replay }) {
   useEffect(() => {
     const engine = engineRef.current;
     const unsub = engine.subscribe(setSnap);
+    // Autoplay from the start of the demo window on mount so the before/after
+    // detection payoff is reached without a click (recorded-demo + live-link friendly).
+    engine.reset();
+    engine.play();
     return () => { unsub(); engine.destroy(); };
   }, []);
 

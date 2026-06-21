@@ -220,6 +220,40 @@ def _spark(values, n=7):
     return vals
 
 
+def build_calibration(d, n_bins=10):
+    """Reliability curve for the event-level calibrated probability `p_event`.
+
+    Labels (`is_risky`) are read from the ground-truth sidecar AT BUILD TIME ONLY and
+    used to compute the *observed* malicious rate per probability bin. Only the
+    aggregated bins ({p_mid, predicted, observed, n}) reach the client — no per-event
+    label is ever exported. This backs the Analytics "predicted vs observed" panel that
+    shows a 0.8 score really means ~80% malicious.
+    """
+    escored = d["escored"][["record_id", "p_event"]].copy()
+    # Ground-truth labels from the Stage-0 sidecar, read at build time only.
+    labels_path = REPO_ROOT / "data" / "raw" / "labels.jsonl"
+    labels = pd.DataFrame(
+        json.loads(line) for line in labels_path.open(encoding="utf-8") if line.strip()
+    ).set_index("record_id")
+    escored["is_risky"] = escored["record_id"].map(labels["is_risky"].astype(int))
+    escored = escored.dropna(subset=["p_event", "is_risky"])
+
+    edges = np.linspace(0.0, 1.0, n_bins + 1)
+    idx = np.clip(np.digitize(escored["p_event"], edges[1:-1]), 0, n_bins - 1)
+    out = []
+    for b in range(n_bins):
+        sel = escored[idx == b]
+        if len(sel) == 0:
+            continue
+        out.append({
+            "p_mid": round(float((edges[b] + edges[b + 1]) / 2), 3),
+            "predicted": round(float(sel["p_event"].mean()), 4),
+            "observed": round(float(sel["is_risky"].mean()), 4),
+            "n": int(len(sel)),
+        })
+    return out
+
+
 def build_metrics(d):
     scored = d["scored"]
     enriched = d["enriched"]
@@ -326,6 +360,7 @@ def build_metrics(d):
         "top_namespaces": top(ns_score, ns_count),
         "top_principals": top(pr_score, pr_count),
         "top_cohorts": top(coh_score, coh_count),
+        "calibration": build_calibration(d),
     }
 
 
