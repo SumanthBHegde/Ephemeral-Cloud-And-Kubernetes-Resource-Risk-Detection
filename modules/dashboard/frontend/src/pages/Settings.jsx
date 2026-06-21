@@ -53,7 +53,7 @@ function AccountTab() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div><Label>Full name</Label><Input className="mt-1.5" defaultValue="Sumanth Hegde" /></div>
-        <div><Label>Email</Label><Input className="mt-1.5" defaultValue="analyst@ephemeralens.io" /></div>
+        <div><Label>Email</Label><Input className="mt-1.5" defaultValue="analyst@sentinel.io" /></div>
         <div><Label>Role</Label><Input className="mt-1.5" defaultValue="Cloud Security Analyst" /></div>
         <div><Label>Team</Label><Input className="mt-1.5" defaultValue="Detection & Response" /></div>
       </div>

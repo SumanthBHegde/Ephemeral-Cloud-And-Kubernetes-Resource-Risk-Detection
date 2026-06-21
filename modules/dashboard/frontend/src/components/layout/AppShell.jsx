@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation, useNavigate, Outlet } from "react-router-do
 import {
   LayoutDashboard, ShieldAlert, Boxes, BarChart3, Bot, FileText,
   Bell, Settings, Menu, Sun, Moon, ChevronsLeft, ChevronsRight,
-  LogOut, User, Command, CircleHelp, Search, Cloud,
+  LogOut, User, Command, CircleHelp, Search,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useTheme } from "../../lib/theme";
@@ -35,12 +35,14 @@ function buildNav(metrics, unread) {
 function Logo({ collapsed }) {
   return (
     <Link to="/app" className="flex items-center gap-2.5 px-1">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-btn bg-primary text-primary-foreground shadow-sm">
-        <Cloud className="h-5 w-5" />
-      </div>
+      <img
+        src="/logo.png"
+        alt="Sentinel"
+        className="h-9 w-9 shrink-0 object-contain"
+      />
       {!collapsed && (
         <div className="leading-tight">
-          <div className="text-[15px] font-bold tracking-tight">EphemeraLens</div>
+          <div className="text-[15px] font-bold tracking-tight">Sentinel</div>
           <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Cloud &amp; K8s Risk</div>
         </div>
       )}
@@ -185,7 +187,7 @@ function Topbar({ setMobileOpen, onOpenPalette }) {
         >
           <div className="px-2.5 py-2">
             <div className="text-sm font-semibold">Sumanth Hegde</div>
-            <div className="text-xs text-muted-foreground">analyst@ephemeralens.io</div>
+            <div className="text-xs text-muted-foreground">analyst@sentinel.io</div>
             <Badge variant="primary" className="mt-1.5">Cloud Security Analyst</Badge>
           </div>
           <Separator />
