@@ -450,7 +450,7 @@ backend.** `python -m modules.dashboard.build` reads `data/processed/*.parquet` 
 `modules/dashboard/frontend/public/data/`; the frontend fetches it once on mount (`lib/data.jsx`
 `DataProvider`/`useData`). This keeps the demo fully offline (matches the project's "demo never depends
 on a network call" principle) and the JS bundle small. The threat-intel project was copied in and
-rebranded (product → **EphemeraLens**; threats→findings, IOCs→resources/events, threat-actors→
+rebranded (product → **Sentinel**; threats→findings, IOCs→resources/events, threat-actors→
 namespaces/cohorts); theme tokens, UI primitives (`ui/index.jsx`), and `shared.jsx` were reused
 verbatim. Login/MFA/Landing/Admin pages were dropped (user: no auth); `/` redirects to `/app`.
 

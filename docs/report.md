@@ -198,7 +198,7 @@ so the ranked incident queue is meaningfully ordered.
 evidence, and guardrails. Validated, retried, cached per incident, with a deterministic label-free
 template fallback so the stage never crashes and reruns cost nothing.
 
-**Stage 6 — Dashboard.** A React 19 + Vite + Tailwind SOC console ("EphemeraLens") fed by **static
+**Stage 6 — Dashboard.** A React 19 + Vite + Tailwind SOC console ("Sentinel") fed by **static
 JSON** exported from the pipeline — no live model or LLM in the demo path. Headline feature: a
 real-time **replay simulation** that plays the 5-day event stream against a virtual clock, forming
 incidents live and contrasting pipeline detection time against the next daily scan.

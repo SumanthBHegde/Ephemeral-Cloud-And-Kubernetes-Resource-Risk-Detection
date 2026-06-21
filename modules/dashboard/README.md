@@ -1,4 +1,4 @@
-# Stage 6 — Dashboard (EphemeraLens console)
+# Stage 6 — Dashboard (Sentinel console)
 
 An enterprise SOC-style web console that visualizes the real pipeline outputs: the ranked incident
 queue, per-incident LLM triage cards, the alert-fatigue reduction curve, an event/resource explorer,

@@ -1,4 +1,4 @@
-# EphemeraLens — Presentation Deck
+# Sentinel — Presentation Deck
 
 > 14 slides. One idea per slide. Figures live in `docs/figures/` (regenerate with
 > `python -m modules.dashboard.figures.build_all`). Convert to PPT/PDF as-is — each `---`
