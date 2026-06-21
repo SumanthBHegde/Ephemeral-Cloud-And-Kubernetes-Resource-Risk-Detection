@@ -101,7 +101,7 @@ export default function ReplayPanel({ replay }) {
         {/* timeline chart */}
         <div className="h-56 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <defs>
                 {Object.entries(SOURCE_COLOR).map(([k, c]) => (
                   <linearGradient key={k} id={`g-${k}`} x1="0" y1="0" x2="0" y2="1">
@@ -112,7 +112,7 @@ export default function ReplayPanel({ replay }) {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} vertical={false} />
               <XAxis dataKey="label" {...axisProps} minTickGap={24} />
-              <YAxis {...axisProps} allowDecimals={false} width={36} />
+              <YAxis {...axisProps} allowDecimals={false} width={50} />
               <Tooltip content={<ChartTooltip />} />
               {formationCrossed && formationLabel && (
                 <ReferenceLine x={formationLabel} stroke={CHART.danger} strokeDasharray="4 2"

@@ -49,10 +49,10 @@ function AnalyticsBody({ metrics }) {
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Risk Trend" description="Incidents per day by severity band.">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={metrics.risk_trend} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+            <LineChart data={metrics.risk_trend} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} vertical={false} />
               <XAxis dataKey="day" {...axisProps} tickFormatter={(d) => d.slice(5)} />
-              <YAxis {...axisProps} allowDecimals={false} width={32} />
+              <YAxis {...axisProps} allowDecimals={false} width={50} />
               <Tooltip content={<ChartTooltip />} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Line type="monotone" dataKey="critical" name="Critical" stroke={CHART.danger} strokeWidth={2} dot={false} />
@@ -79,10 +79,10 @@ function AnalyticsBody({ metrics }) {
 
         <Panel title="Events by Source" description="Normalized event volume per telemetry source.">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={metrics.source_breakdown} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+            <BarChart data={metrics.source_breakdown} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} vertical={false} />
               <XAxis dataKey="name" {...axisProps} />
-              <YAxis {...axisProps} width={44} />
+              <YAxis {...axisProps} width={50} />
               <Tooltip content={<ChartTooltip />} />
               <Bar dataKey="value" name="Events" fill={CHART.info} radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -128,11 +128,11 @@ function AnalyticsBody({ metrics }) {
         {calibration.length > 0 && (
           <Panel title="Risk Calibration" description="Predicted risk vs observed malicious rate — a 0.8 score means ~80% malicious.">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={calibration} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+              <LineChart data={calibration} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} />
                 <XAxis type="number" dataKey="predicted" domain={[0, 1]} {...axisProps}
                   tickFormatter={(v) => v.toFixed(1)} />
-                <YAxis type="number" domain={[0, 1]} {...axisProps} width={36}
+                <YAxis type="number" domain={[0, 1]} {...axisProps} width={50}
                   tickFormatter={(v) => v.toFixed(1)} />
                 <Tooltip content={<ChartTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
