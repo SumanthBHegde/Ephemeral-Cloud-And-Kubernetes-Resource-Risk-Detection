@@ -1,165 +1,72 @@
-# Ephemeral Cloud & Kubernetes Resource Risk Detection
+# Sentinel: Ephemeral Cloud & Kubernetes Resource Risk Detection
 
-> **A legitimate autoscaler burst and a crypto-mining hijack are statistically identical at the event level — same API calls, same burst rate. The signal that separates them isn't in the event, it's in the _context_. So we detect on context, not events.**
+**Detect on *context*, not events.** Sentinel ingests cloud/Kubernetes telemetry, enriches and
+correlates it into incidents, scores them with a fused risk model, and triages the top incidents
+with an LLM, surfacing real attacks (resource hijacking, credential abuse, malicious service
+exposure) **before a once-a-day scan would even run**.
 
-A near-real-time detection pipeline for the risk that traditional security misses: CI/CD job pods,
-spot instances, assumed-role sessions, and autoscaled containers that live for **minutes** and vanish
-before a daily scan ever sees them. It discovers ephemeral assets, detects risky transient behavior,
-correlates events across cloud + Kubernetes + identity logs into incidents, scores them, and emits
-analyst-ready LLM triage narratives with MITRE mapping and remediation.
+🔗 **Live demo:** https://sentinel-rho-sooty.vercel.app/app
 
-**🔗 Live demo:** <https://sentinel-rho-sooty.vercel.app/app> · **📹 Demo video:** https://drive.google.com/file/d/1LnaYogPV3UaAyqidRE5TYY2Esaw8OCsU/view?usp=drivesdk **📄 Report:** [docs/report.md](docs/report.md)
+> Presented as **EphemeraLens** in the console UI. Detection is grounded in MITRE ATT&CK technique
+> mapping and a confusability-aware model that separates genuine attacks from benign look-alikes
+> (autoscaler bursts, CI runners, scheduled jobs).
 
----
+## 📸 Screenshots
 
-## Why this is hard — the one figure that matters
+### Resource Risk Dashboard
+Near-real-time risk across ephemeral assets, with a **live replay simulation** that re-plays an
+incident's events and shows it being detected ~18h before a traditional daily scan.
 
-![Same burst — which is the attack?](docs/figures/confusability.png)
+![Resource Risk Dashboard](./screenshots/01-dashboard.png)
 
-Most submissions make malicious bursts *bigger* or *faster* than benign ones. That makes the metrics
-look great and proves nothing. **Our simulator refuses that shortcut.** Above are two real populations
-from our generated data: a legitimate autoscaler burst and a crypto-mining hijack. They fire at the
-**same rate** (left — the distributions sit on top of each other). The only thing that separates them
-is **context** (right): missing tags, off-hours timing, untagged spot fleets. Any system that detects
-on event volume alone fails on exactly the ambiguous cases this project exists to solve.
+### Risk Findings
+Correlated incidents ranked by fused risk score, each tagged with MITRE ATT&CK techniques
+(e.g. T1496, T1610, T1078), event counts, and duration.
 
----
+![Risk Findings](./screenshots/02-risk-findings.png)
 
-## Architecture
+### Risk Analytics
+Distributions, trends, and calibration across the pipeline: risk trend by severity band,
+MITRE technique frequency, events by telemetry source, cohort intensity, and the alert-fatigue
+funnel (raw events → flagged → suppressed → correlated → triaged).
 
-```
-[Cloud audit]  [K8s audit]  [Identity/session]
-       \           |            /
-        v          v           v
-  (1) Ingest + enrich   →  unified schema · behavioral cohorts · context features
-        |
-  (2) Detect            →  always-on tripwires + recall-first anomaly ensemble
-        |                  (IsolationForest + ECOD) + cohort-aware suppression
-        |
-  (3) Cluster           →  NetworkX entity graph; incidents = connected components
-        |                  within an identity + namespace + time envelope
-        |
-  (4) Score             →  fused, isotonic-calibrated risk @ the INCIDENT level (after clustering)
-        |
-  (5) LLM triage        →  validated structured JSON: intent, confidence, MITRE, guardrails
-        |
-  (6) Dashboard         →  React SOC console fed by static JSON (offline, demo never needs a network)
-```
+![Risk Analytics](./screenshots/03-analytics.png)
 
-The four differentiators: **behavioral cohorts** (baseline the cohort, not the ephemeral identity) ·
-**two-stage detection** (separate recall from precision) · **graph correlation** (recover cross-source
-campaigns time-windowing can't) · **LLM triage agent** (reason over evidence, don't just narrate).
+### AI Risk Analyst (LLM triage)
+Ask about any incident and get a grounded triage: likely intent, why-not-benign reasoning, MITRE
+techniques, key evidence, and recommended guardrails.
 
-Full design rationale: [docs/ephemeral_risk_detection_analysis.md](docs/ephemeral_risk_detection_analysis.md).
-Progress log & decisions: [context.md](context.md).
+![AI Risk Analyst](./screenshots/04-ai-risk-analyst.png)
 
----
+### Tested pipeline (50 passing tests)
+Every stage has a dedicated test module; the full suite passes end-to-end.
 
-## Results — the ablation table
+![Test suite](./screenshots/06-tests.png)
 
-Each row adds one differentiator; each earns its place. Measured against ground-truth labels we control
-(9,857 events, 17.3% risky).
+## 🏗️ Pipeline
 
-| Configuration | Precision | Recall | Alert reduction |
-|---|---:|---:|---:|
-| Tripwires only | 43.5% | 72.5% | 38% |
-| + Stage-1 anomaly ensemble | 31.1% | 84.2% | 0% |
-| + Stage-2 cohort suppression | 33.6% | 84.2% | 8% |
-| + Graph correlation | 24.1% | **100%** | **89%** |
-| + Risk fusion (incident, band ≥ HIGH) | **68.4%** | 99.5% | 89% |
+Staged, deterministic, and individually tested (`tests/test_stage0…5.py`, **50 tests, all passing**):
 
-**Headline numbers:** recall climbs **72% → 100%** (graph bridge-expansion recovers detections the
-model missed); alerts collapse **89%** (4,638 raw flags → 529 incidents); and the ranked queue hits
-**precision@50 = 96%** — the brief's prescribed risk-quality metric. Correlation accuracy vs injected
-`campaign_id`: V-measure **0.93**.
+| Stage | Module | Role |
+|---|---|---|
+| 0–1 | `data_simulation`, `ingest_enrich` | Generate/ingest telemetry and enrich events |
+| 2 | `detection` | Anomaly + rule detection (incl. PyOD ECOD) |
+| 3 | `correlation` | Correlate events into incidents (alert reduction) |
+| 4 | `risk_fusion` | Fuse signals into a calibrated, ranked risk score |
+| 5 | `llm_triage` | Cached LLM triage narratives per incident |
+| 6 | `dashboard` | React + Vite console (EphemeraLens) + analytic figures |
 
-**Alert-fatigue funnel:** 9,857 raw events → 3,517 flagged → 3,167 after suppression → **529
-correlated incidents** → 263 triaged. The SOC investigates 529 things, not 9,857.
-
----
-
-## Run it locally
-
-**One command** (Git Bash or WSL on Windows, or any Unix shell) — installs
-dependencies, runs the full pipeline from scratch (deterministic, seed 1337), and
-launches the dashboard at <http://localhost:5173/app>:
+## 🚀 Running locally
 
 ```bash
-./run.sh
+# Pipeline tests (Python)
+pip install pyod          # plus numpy/scipy/scikit-learn/pandas/pyarrow
+python -m pytest -q
+
+# Dashboard (React + Vite)
+cd modules/dashboard/frontend
+npm install && npm run dev
 ```
 
-Useful flags: `SKIP_INSTALL=1 ./run.sh` (deps already installed) ·
-`SKIP_PIPELINE=1 ./run.sh` (use the committed data JSON, just launch the dashboard).
-
-<details>
-<summary>Or run each stage by hand</summary>
-
-```bash
-pip install -r requirements.txt
-
-# Full pipeline (deterministic, seed 1337)
-python -m modules.data_simulation.generator.build   # generate data/raw/
-python -m modules.ingest_enrich.build               # → events_enriched.parquet
-python -m modules.detection.build                   # → detections.parquet
-python -m modules.correlation.build                 # → incidents.parquet
-python -m modules.risk_fusion.build                 # → incidents_scored.parquet
-python -m modules.llm_triage.build --no-llm         # → incidents_triaged.parquet (offline)
-python -m modules.dashboard.build                   # → frontend/public/data/*.json
-
-python -m pytest tests/ -q                           # 50 passed
-
-# Dashboard
-cd modules/dashboard/frontend && npm install && npm run dev   # http://localhost:5173/app
-```
-
-</details>
-
-The dashboard reads **static JSON** exported from the pipeline — no live model or LLM call in the demo
-path, so it runs fully offline. The LLM triage (`gpt-4o-mini`) is pre-generated and cached; the
-`--no-llm` path and the whole test suite need no API key.
-
-### Deploy (Vercel)
-
-The frontend is a static Vite build with committed data JSON. On Vercel: set **Root Directory** to
-`modules/dashboard/frontend`, framework **Vite**, build `npm run build`, output `dist`. The included
-[`vercel.json`](modules/dashboard/frontend/vercel.json) rewrites SPA routes to `index.html` (so deep
-links like `/app/findings` don't 404) while leaving `/data/*` static.
-
----
-
-## Honest evaluation (questions a judge should ask)
-
-**"Isn't detecting `cohort=unknown` just detecting the label you injected?"**
-No. Confusability is enforced at generation time — the figure above shows benign and malicious bursts
-are statistically indistinguishable in volume/rate. The risk-fusion score is **label-free** (built from
-anomaly score, exposure, privilege, novelty). The *only* sanctioned label touch is **out-of-fold
-isotonic calibration**, where no event is scored by a model that saw its label. We detect the
-*behavior*; the label is downstream ground truth used to measure, not to predict.
-
-**"Precision is 68%, the target was 75%."**
-68.4% is the deliberately high-recall **band cut** (`band ≥ HIGH`) — a tripwire incident is never
-silently dismissed, by design. The brief's actual risk-scoring-quality metric is **precision/recall@K
-against severity**, where the ranked incident queue hits **96% @50**. We optimize the ranked queue an
-analyst actually works, not a single threshold.
-
-**"It's all synthetic."**
-Yes, and that's controlled, not faked: there is no public dataset with the labeled ground truth
-(`is_risky`, `campaign_id`, `severity`) this problem requires. The simulator is grounded field-by-field
-in real AWS CloudTrail / `audit.k8s.io` / Okta schemas and real burst-timing distributions
-([docs/data_resource_research.md](docs/data_resource_research.md)), and every metric is measured against
-labels we constructed ground-truth-first.
-
----
-
-## Repository layout
-
-```
-docs/        design doc (source of truth), problem statement, data research, figures/
-data/        raw/ (simulated logs + labels) · processed/ (enriched + scored parquet)
-modules/     data_simulation · ingest_enrich · detection · correlation ·
-             risk_fusion · llm_triage · dashboard (React frontend + JSON export)
-tests/       50-test pytest suite across all six stages
-```
-
-Built as a hackathon submission for the **Cloud Security Governance & Risk** track. Frameworks mapped:
-NIST SP 800-53 (CM-8, SI-4, IR-4), MITRE ATT&CK (T1496, T1578, T1190), CIS Kubernetes, GDPR Art. 32.
+Processed pipeline artifacts live in `data/processed/` (`incidents_scored.parquet`,
+`incidents_triaged.parquet`, per-incident triage cache, etc.).
