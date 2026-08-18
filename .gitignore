@@ -21,5 +21,8 @@ docs/slides.md
 docs/build_docx.py
 docs/build_pptx.py
 docs/chat_history_*.md
+docs/~$*.docx
+docs/~$*.doc
 
 notes/
+-w
