@@ -149,30 +149,6 @@ links like `/app/findings` don't 404) while leaving `/data/*` static.
 
 ---
 
-## Honest evaluation (questions a judge should ask)
-
-**"Isn't detecting `cohort=unknown` just detecting the label you injected?"**
-No. Confusability is enforced at generation time — the figure above shows benign and malicious bursts
-are statistically indistinguishable in volume/rate. The risk-fusion score is **label-free** (built from
-anomaly score, exposure, privilege, novelty). The *only* sanctioned label touch is **out-of-fold
-isotonic calibration**, where no event is scored by a model that saw its label. We detect the
-*behavior*; the label is downstream ground truth used to measure, not to predict.
-
-**"Precision is 68%, the target was 75%."**
-68.4% is the deliberately high-recall **band cut** (`band ≥ HIGH`) — a tripwire incident is never
-silently dismissed, by design. The brief's actual risk-scoring-quality metric is **precision/recall@K
-against severity**, where the ranked incident queue hits **96% @50**. We optimize the ranked queue an
-analyst actually works, not a single threshold.
-
-**"It's all synthetic."**
-Yes, and that's controlled, not faked: there is no public dataset with the labeled ground truth
-(`is_risky`, `campaign_id`, `severity`) this problem requires. The simulator is grounded field-by-field
-in real AWS CloudTrail / `audit.k8s.io` / Okta schemas and real burst-timing distributions
-([docs/data_resource_research.md](docs/data_resource_research.md)), and every metric is measured against
-labels we constructed ground-truth-first.
-
----
-
 ## Repository layout
 
 ```
